@@ -1,0 +1,390 @@
+@startuml WSE_ER_v2
+
+hide circle
+skinparam linetype ortho
+
+' =========================================================
+' CORE
+' =========================================================
+
+entity "users" as users {
+  * id : UUID <<PK>>
+  --
+  email : VARCHAR <<unique>>
+  password_hash : VARCHAR
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "worlds" as worlds {
+  * id : UUID <<PK>>
+  --
+  * user_id : UUID <<FK>>
+  name : VARCHAR
+  description : TEXT
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+note right of worlds
+  RENAMED from "projects" to match the
+  product language ("World") already used
+  throughout the frontend (useWorldStore,
+  /worlds/:id routes). Every table below
+  that referenced project_id now
+  references world_id instead.
+end note
+
+' =========================================================
+' MANUSCRIPT CONTENT
+' =========================================================
+
+entity "manuscripts" as manuscripts {
+  * id : UUID <<PK>>
+  --
+  * world_id : UUID <<FK>>
+  title : VARCHAR
+  original_file_path : TEXT
+  file_type : VARCHAR
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "chapters" as chapters {
+  * id : UUID <<PK>>
+  --
+  * manuscript_id : UUID <<FK>>
+  chapter_number : INT
+  title : VARCHAR
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+note right of chapters
+  Backend logic rule (NOT a schema change):
+  if an uploaded manuscript has no
+  detectable chapter markers, auto-create
+  exactly ONE chapter (chapter_number = 1)
+  holding the full text. Splitting that
+  text into ~8000-char pieces for the LLM
+  stays an in-memory detail of a single
+  extraction_run - do not persist it as
+  its own table.
+end note
+
+entity "chapter_versions" as chapter_versions {
+  * id : UUID <<PK>>
+  --
+  * chapter_id : UUID <<FK>>
+  version_number : INT
+  is_current : BOOLEAN
+  content_path : TEXT
+  content_hash : VARCHAR
+  created_at : TIMESTAMP
+}
+
+' =========================================================
+' JOBS & EXTRACTION PROVENANCE
+' =========================================================
+
+entity "processing_jobs" as processing_jobs {
+  * id : UUID <<PK>>
+  --
+  * world_id : UUID <<FK>>
+  manuscript_id : UUID <<FK>>
+  job_type : VARCHAR
+  status : VARCHAR
+  chapters_total : INT
+  chapters_completed : INT
+  error_message : TEXT
+  created_at : TIMESTAMP
+  started_at : TIMESTAMP
+  completed_at : TIMESTAMP
+}
+note right of processing_jobs
+  NEW TABLE. One row per user-triggered
+  action spanning one or more chapters:
+  initial manuscript upload
+  (job_type = INITIAL_EXTRACTION) or a
+  chapter save / re-upload
+  (job_type = RE_EXTRACTION).
+  This is the ONLY thing the frontend
+  polls: GET /jobs/:id. It should never
+  need to know extraction_runs exist.
+  Backend increments chapters_completed
+  as each child extraction_run finishes
+  and rolls status to DONE only when every
+  spawned extraction_run is DONE (any
+  FAILED fails the job).
+end note
+
+entity "extraction_runs" as extraction_runs {
+  * id : UUID <<PK>>
+  --
+  * chapter_version_id : UUID <<FK>>
+  processing_job_id : UUID <<FK>>
+  status : VARCHAR
+  extractor_version : VARCHAR
+  created_at : TIMESTAMP
+  started_at : TIMESTAMP
+  completed_at : TIMESTAMP
+  error_message : TEXT
+  created_by : UUID <<FK>>
+}
+note right of extraction_runs
+  Added processing_job_id (nullable FK) so
+  a per-chapter run can report completion
+  back to its parent job. Otherwise
+  unchanged: one chapter_version can still
+  have multiple extraction_runs over time
+  (retries, or re-running with a newer
+  extractor_version against unchanged text).
+end note
+
+' =========================================================
+' ENTITIES & FACTS
+' =========================================================
+
+entity "entities" as entities {
+  * id : UUID <<PK>>
+  --
+  * world_id : UUID <<FK>>
+  entity_type : VARCHAR
+  canonical_name : VARCHAR
+  created_at : TIMESTAMP
+  updated_at : TIMESTAMP
+}
+
+entity "entity_aliases" as entity_aliases {
+  * id : UUID <<PK>>
+  --
+  * entity_id : UUID <<FK>>
+  alias : VARCHAR
+  confidence : DECIMAL
+}
+
+entity "entity_mentions" as entity_mentions {
+  * id : UUID <<PK>>
+  --
+  * extraction_run_id : UUID <<FK>>
+  * entity_id : UUID <<FK>>
+  surface_text : TEXT
+  start_position : INT
+  end_position : INT
+  confidence : DECIMAL
+}
+
+entity "facts" as facts {
+  * id : UUID <<PK>>
+  --
+  * entity_id : UUID <<FK>>
+  property_name : VARCHAR
+  created_at : TIMESTAMP
+}
+
+entity "fact_versions" as fact_versions {
+  * id : UUID <<PK>>
+  --
+  * fact_id : UUID <<FK>>
+  chapter_id : UUID <<FK>>
+  chapter_version_id : UUID <<FK>>
+  extraction_run_id : UUID <<FK>>
+  value : JSONB
+  status : VARCHAR
+  confidence : DECIMAL
+  created_at : TIMESTAMP
+}
+note right of fact_versions
+  ADDED status (ACTIVE / SUPERSEDED /
+  CONTRADICTED), mirroring
+  relationship_versions below.
+  This is the real fix for the current
+  pipeline bug where conflicting attribute
+  values get silently packed into a
+  Python list (e.g. "age": [null, "65"])
+  with no flag raised. Every new
+  extraction run writes a NEW row here
+  instead of overwriting. The Phase-2
+  consistency engine compares a new row
+  against the current ACTIVE row for the
+  same fact_id; on conflict it marks the
+  old row SUPERSEDED or CONTRADICTED and
+  writes a contradictions row.
+end note
+
+entity "fact_mentions" as fact_mentions {
+  * id : UUID <<PK>>
+  --
+  * extraction_run_id : UUID <<FK>>
+  * entity_id : UUID <<FK>>
+  property_name : VARCHAR
+  value : JSONB
+  start_position : INT
+  end_position : INT
+  confidence : DECIMAL
+}
+note right of fact_mentions
+  Unchanged. Raw, per-run capture of one
+  text span asserting a property value.
+  A resolution step (Phase 2) rolls these
+  up into fact_versions rows - that step
+  must NOT collapse conflicting values
+  into an array; it must create a new
+  fact_versions row and let the
+  consistency engine decide ACTIVE vs
+  CONTRADICTED.
+end note
+
+' =========================================================
+' RELATIONSHIPS
+' =========================================================
+
+entity "relationships" as relationships {
+  * id : UUID <<PK>>
+  --
+  * world_id : UUID <<FK>>
+  * source_entity_id : UUID <<FK>>
+  * target_entity_id : UUID <<FK>>
+  created_at : TIMESTAMP
+}
+note right of relationships
+  relationship_type MOVED to
+  relationship_versions (see note there).
+  This table now only records that a pair
+  of entities has SOME relationship -
+  matching the facts / fact_versions split.
+end note
+
+entity "relationship_versions" as relationship_versions {
+  * id : UUID <<PK>>
+  --
+  * relationship_id : UUID <<FK>>
+  chapter_id : UUID <<FK>>
+  chapter_version_id : UUID <<FK>>
+  extraction_run_id : UUID <<FK>>
+  relationship_type : VARCHAR
+  status : VARCHAR
+  confidence : DECIMAL
+  created_at : TIMESTAMP
+}
+note right of relationship_versions
+  ADDED relationship_type (moved from
+  relationships). Without this, a
+  relationship that starts as "colleagues"
+  and becomes "married" later has nowhere
+  to record the change - the base row had
+  one fixed type. A CONTRADICTED status
+  here means "this chapter's stated type
+  conflicts with an earlier ACTIVE version."
+end note
+
+' =========================================================
+' EVENTS
+' =========================================================
+
+entity "events" as events {
+  * id : UUID <<PK>>
+  --
+  * world_id : UUID <<FK>>
+  chapter_id : UUID <<FK>>
+  chapter_version_id : UUID <<FK>>
+  extraction_run_id : UUID <<FK>>
+  event_type : VARCHAR
+  description : TEXT
+  start_position : INT
+  end_position : INT
+  confidence : DECIMAL
+  created_at : TIMESTAMP
+}
+
+entity "event_participants" as event_participants {
+  * id : UUID <<PK>>
+  --
+  * event_id : UUID <<FK>>
+  * entity_id : UUID <<FK>>
+  role : VARCHAR
+}
+
+' =========================================================
+' CONSISTENCY
+' =========================================================
+
+entity "contradictions" as contradictions {
+  * id : UUID <<PK>>
+  --
+  * world_id : UUID <<FK>>
+  contradiction_type : VARCHAR
+  old_fact_version_id : UUID <<FK>>
+  new_fact_version_id : UUID <<FK>>
+  old_relationship_version_id : UUID <<FK>>
+  new_relationship_version_id : UUID <<FK>>
+  event_id_a : UUID <<FK>>
+  event_id_b : UUID <<FK>>
+  explanation : TEXT
+  confidence : DECIMAL
+  status : VARCHAR
+  created_at : TIMESTAMP
+}
+note right of contradictions
+  GENERALIZED. Original table could only
+  represent a fact-vs-fact contradiction.
+  Added nullable columns for
+  relationship-version conflicts and
+  event/temporal conflicts (e.g. the same
+  character in two places at once - the
+  kind of thing consistency_checker.py
+  already detects structurally but has
+  nowhere to persist). contradiction_type
+  tells you which column pair is populated
+  for a given row; the rest stay null.
+  Plain nullable FKs instead of a
+  polymorphic association because Postgres
+  can enforce real FK constraints on these.
+end note
+
+' =========================================================
+' RELATIONSHIPS BETWEEN TABLES
+' =========================================================
+
+users          ||--o{ worlds
+worlds         ||--o{ manuscripts
+manuscripts    ||--o{ chapters
+chapters       ||--o{ chapter_versions
+
+worlds         ||--o{ processing_jobs
+manuscripts    ||--o{ processing_jobs
+processing_jobs||--o{ extraction_runs
+chapter_versions ||--o{ extraction_runs
+users          ||--o{ extraction_runs
+
+worlds         ||--o{ entities
+entities       ||--o{ entity_aliases
+extraction_runs||--o{ entity_mentions
+entities       ||--o{ entity_mentions
+
+entities       ||--o{ facts
+facts          ||--o{ fact_versions
+chapters       ||--o{ fact_versions
+chapter_versions ||--o{ fact_versions
+extraction_runs||--o{ fact_versions
+extraction_runs||--o{ fact_mentions
+entities       ||--o{ fact_mentions
+
+worlds         ||--o{ relationships
+entities       ||--o{ relationships
+relationships  ||--o{ relationship_versions
+chapters       ||--o{ relationship_versions
+chapter_versions ||--o{ relationship_versions
+extraction_runs||--o{ relationship_versions
+
+worlds         ||--o{ events
+chapters       ||--o{ events
+chapter_versions ||--o{ events
+extraction_runs||--o{ events
+events         ||--o{ event_participants
+entities       ||--o{ event_participants
+
+worlds              ||--o{ contradictions
+fact_versions       ||--o{ contradictions
+relationship_versions ||--o{ contradictions
+events              ||--o{ contradictions
+
+@enduml
