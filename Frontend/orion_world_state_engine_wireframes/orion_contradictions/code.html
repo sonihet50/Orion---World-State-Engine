@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Orion - Contradictions</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&amp;family=Space+Grotesk:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "background": "#131315",
+                      "primary-fixed-dim": "#feb68d",
+                      "inverse-surface": "#e5e1e4",
+                      "starlight-white": "#FAFAFA",
+                      "surface-variant": "#353437",
+                      "on-primary": "#502406",
+                      "on-secondary-fixed": "#171b27",
+                      "on-primary-container": "#522608",
+                      "error-container": "#93000a",
+                      "copper-glow": "#E6A27E",
+                      "tertiary-container": "#9b9999",
+                      "secondary-fixed": "#dee2f2",
+                      "surface": "#131315",
+                      "on-secondary-fixed-variant": "#424754",
+                      "outline": "#9f8d84",
+                      "surface-container": "#201f22",
+                      "secondary": "#c2c6d6",
+                      "error": "#ffb4ab",
+                      "inverse-primary": "#875130",
+                      "surface-container-lowest": "#0e0e10",
+                      "void-black": "#000000",
+                      "secondary-container": "#424754",
+                      "on-secondary-container": "#b0b5c4",
+                      "surface-container-low": "#1c1b1d",
+                      "surface-container-high": "#2a2a2c",
+                      "tertiary-fixed": "#e5e2e1",
+                      "surface-tint": "#feb68d",
+                      "on-primary-fixed": "#321200",
+                      "on-secondary": "#2b303c",
+                      "outline-variant": "#52443c",
+                      "on-error": "#690005",
+                      "primary": "#feb68d",
+                      "surface-container-highest": "#353437",
+                      "on-error-container": "#ffdad6",
+                      "on-tertiary-fixed": "#1b1b1b",
+                      "secondary-fixed-dim": "#c2c6d6",
+                      "deep-charcoal": "#121212",
+                      "on-background": "#e5e1e4",
+                      "primary-fixed": "#ffdbc9",
+                      "inverse-on-surface": "#313032",
+                      "surface-dim": "#131315",
+                      "on-surface": "#e5e1e4",
+                      "tertiary": "#c8c6c5",
+                      "on-primary-fixed-variant": "#6b3a1b",
+                      "tertiary-fixed-dim": "#c8c6c5",
+                      "on-tertiary": "#303030",
+                      "surface-bright": "#39393b",
+                      "primary-container": "#cc8b65",
+                      "on-tertiary-fixed-variant": "#474746",
+                      "on-surface-variant": "#d7c2b8",
+                      "on-tertiary-container": "#323131"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-md": "16px",
+                      "nav-rail-width": "64px",
+                      "stack-sm": "8px",
+                      "gutter": "24px",
+                      "side-panel-width": "320px",
+                      "margin-safe": "40px",
+                      "stack-lg": "32px"
+              },
+              "fontFamily": {
+                      "headline-md": [
+                              "\"Source Serif 4\""
+                      ],
+                      "display-lg": [
+                              "\"Source Serif 4\""
+                      ],
+                      "label-sm": [
+                              "Space Grotesk"
+                      ],
+                      "headline-lg-mobile": [
+                              "\"Source Serif 4\""
+                      ],
+                      "headline-lg": [
+                              "\"Source Serif 4\""
+                      ],
+                      "body-lg": [
+                              "Geist"
+                      ],
+                      "body-md": [
+                              "Geist"
+                      ]
+              },
+              "fontSize": {
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "display-lg": [
+                              "48px",
+                              {
+                                      "lineHeight": "56px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "300"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "28px",
+                              {
+                                      "lineHeight": "36px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "headline-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+            },
+          }
+    </script>
+<style>
+        body {
+            background-image: radial-gradient(circle at top left, rgba(230, 162, 126, 0.03), transparent 40%),
+                              radial-gradient(circle at bottom right, rgba(230, 162, 126, 0.02), transparent 50%);
+        }
+        .glass-card {
+            background: rgba(29, 29, 29, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(250, 250, 250, 0.1);
+        }
+        .glow-hover:hover {
+            box-shadow: inset 0 0 40px rgba(230, 162, 126, 0.05);
+            border-color: rgba(230, 162, 126, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-void-black text-on-background min-h-screen font-body-md text-body-md overflow-x-hidden selection:bg-primary-fixed-dim selection:text-void-black">
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 left-nav-rail-width h-14 bg-surface-dim/80 backdrop-blur-md border-b border-starlight-white/5 flex items-center justify-between px-gutter w-[calc(100%-64px)] z-30">
+<div class="flex items-center gap-4 cursor-pointer transition-all hover:bg-white/5 p-2 rounded-lg">
+<span class="font-headline-md text-headline-md text-primary font-bold tracking-tighter">Orion</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors duration-300 flex items-center gap-2">
+<span class="font-label-sm text-label-sm">Terra Incognita</span>
+</button>
+<div class="flex items-center gap-2 border-l border-starlight-white/10 pl-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors duration-300 w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/5">
+<span class="material-symbols-outlined" style="font-variation-settings: 'wght' 300;">schedule</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors duration-300 w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/5">
+<span class="material-symbols-outlined" style="font-variation-settings: 'wght' 300;">radio</span>
+</button>
+</div>
+</div>
+</header>
+<!-- SideNavBar (Rail) -->
+<nav class="fixed left-0 top-0 h-full w-nav-rail-width bg-void-black border-r border-starlight-white/10 flex flex-col items-center py-stack-md z-40">
+<div class="mb-stack-lg flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-surface-container-high border border-starlight-white/10 flex items-center justify-center mb-2 overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A subtle, minimalist avatar graphic representing a creator profile, utilizing deep blacks and a singular spark of copper light, reflecting a serene and focused world-building atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJT_v1IwWEQdpT1FJyX7ekgIAmnNEQ5nlGPJpv74152J3YqQVYOuZP4_7fbztiAtxkQh0lPfMAvpz4g05H7bMmXe-K5lhvuYL-fLywUNdqq8hU63-40hy7b8-an09doW1kPoJcXiYkYE8Os4e7OeEDRj73D-T6gllXhF6fxtzuFlzeFl00uA_Zv8H4Z5fFhFDQDqPLLqXkaoZlsuI_YyJTBUFQW6rsOAXLAtGgbZqIx93d0YSDYoiJcQ"/>
+</div>
+</div>
+<div class="flex-1 flex flex-col gap-2 w-full font-label-sm text-label-sm">
+<a class="flex flex-col items-center justify-center py-4 text-on-surface-variant/60 hover:text-primary transition-colors duration-300 group" href="#">
+<span class="material-symbols-outlined mb-1 group-hover:scale-110 transition-transform" style="font-variation-settings: 'wght' 200;">home</span>
+<span class="opacity-0 group-hover:opacity-100 absolute left-full ml-2 bg-surface-container px-2 py-1 rounded text-starlight-white pointer-events-none transition-opacity">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center py-4 text-on-surface-variant/60 hover:text-primary transition-colors duration-300 group" href="#">
+<span class="material-symbols-outlined mb-1 group-hover:scale-110 transition-transform" style="font-variation-settings: 'wght' 200;">menu_book</span>
+<span class="opacity-0 group-hover:opacity-100 absolute left-full ml-2 bg-surface-container px-2 py-1 rounded text-starlight-white pointer-events-none transition-opacity">Manuscripts</span>
+</a>
+<a class="relative flex flex-col items-center justify-center py-4 text-primary after:absolute after:left-0 after:h-8 after:w-0.5 after:bg-primary after:shadow-[0_0_12px_rgba(254,182,141,0.5)] scale-95 transition-transform group" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'wght' 400, 'FILL' 1;">public</span>
+<span class="opacity-0 group-hover:opacity-100 absolute left-full ml-2 bg-surface-container px-2 py-1 rounded text-starlight-white pointer-events-none transition-opacity z-50">World</span>
+</a>
+<a class="flex flex-col items-center justify-center py-4 text-on-surface-variant/60 hover:text-primary transition-colors duration-300 group" href="#">
+<span class="material-symbols-outlined mb-1 group-hover:scale-110 transition-transform" style="font-variation-settings: 'wght' 200;">bubble_chart</span>
+<span class="opacity-0 group-hover:opacity-100 absolute left-full ml-2 bg-surface-container px-2 py-1 rounded text-starlight-white pointer-events-none transition-opacity z-50">Graph</span>
+</a>
+<a class="flex flex-col items-center justify-center py-4 text-on-surface-variant/60 hover:text-primary transition-colors duration-300 group" href="#">
+<span class="material-symbols-outlined mb-1 group-hover:scale-110 transition-transform" style="font-variation-settings: 'wght' 200;">timeline</span>
+<span class="opacity-0 group-hover:opacity-100 absolute left-full ml-2 bg-surface-container px-2 py-1 rounded text-starlight-white pointer-events-none transition-opacity z-50">Timeline</span>
+</a>
+<a class="flex flex-col items-center justify-center py-4 text-on-surface-variant/60 hover:text-primary transition-colors duration-300 group" href="#">
+<span class="material-symbols-outlined mb-1 group-hover:scale-110 transition-transform" style="font-variation-settings: 'wght' 200;">person_outline</span>
+<span class="opacity-0 group-hover:opacity-100 absolute left-full ml-2 bg-surface-container px-2 py-1 rounded text-starlight-white pointer-events-none transition-opacity z-50">Account</span>
+</a>
+</div>
+<div class="mt-auto flex flex-col items-center w-full font-label-sm text-label-sm">
+<a class="flex flex-col items-center justify-center py-4 text-on-surface-variant/60 hover:text-primary transition-colors duration-300 group" href="#">
+<span class="material-symbols-outlined mb-1 group-hover:scale-110 transition-transform" style="font-variation-settings: 'wght' 200;">settings</span>
+<span class="opacity-0 group-hover:opacity-100 absolute left-full ml-2 bg-surface-container px-2 py-1 rounded text-starlight-white pointer-events-none transition-opacity z-50">Settings</span>
+</a>
+</div>
+</nav>
+<!-- Main Stage -->
+<main class="ml-nav-rail-width mt-14 p-gutter min-h-[calc(100vh-56px)] relative z-10 flex flex-col">
+<!-- Header Section -->
+<header class="mb-12 max-w-4xl">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-copper-glow" style="font-variation-settings: 'wght' 300;">rule</span>
+<h1 class="font-display-lg text-display-lg text-starlight-white">Contradictions</h1>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface-variant/80 max-w-2xl leading-relaxed">
+                The Archive has detected potential inconsistencies within the established world state. These values may conflict, presenting opportunities to refine the timeline or clarify entity histories.
+            </p>
+</header>
+<!-- Contradictions Canvas (Bento/Asymmetric Layout) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl pb-20">
+<!-- Card 1 -->
+<article class="glass-card rounded-xl p-6 flex flex-col gap-4 glow-hover transition-all duration-500 col-span-1 lg:col-span-2 relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-br from-copper-glow/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+<header class="flex justify-between items-start border-b border-starlight-white/5 pb-4">
+<div>
+<span class="font-label-sm text-label-sm text-copper-glow uppercase tracking-widest mb-1 block">Character History</span>
+<h2 class="font-headline-md text-headline-md text-starlight-white">Elara Vance</h2>
+</div>
+<div class="bg-surface-container-high px-3 py-1 rounded-full border border-starlight-white/10 flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px]">info</span>
+<span class="font-label-sm text-label-sm">High Priority</span>
+</div>
+</header>
+<div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 py-2">
+<div class="bg-deep-charcoal/50 rounded-lg p-4 border border-starlight-white/5">
+<div class="font-label-sm text-label-sm text-on-surface-variant mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">menu_book</span>
+                            Chapter 3
+                        </div>
+<p class="font-body-md text-body-md text-inverse-surface">
+                            "Elara celebrated her <span class="text-error border-b border-error border-dashed">32nd</span> birthday beneath the spires of Aethelgard."
+                        </p>
+</div>
+<div class="bg-deep-charcoal/50 rounded-lg p-4 border border-starlight-white/5">
+<div class="font-label-sm text-label-sm text-on-surface-variant mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">menu_book</span>
+                            Chapter 12
+                        </div>
+<p class="font-body-md text-body-md text-inverse-surface">
+                            "Now, at <span class="text-error border-b border-error border-dashed">34</span> years of age, she recounted the events of three years prior."
+                        </p>
+</div>
+</div>
+<footer class="mt-auto pt-4 flex items-center justify-between">
+<p class="font-body-md text-body-md text-on-surface-variant/60 italic text-sm">Temporal discrepancy detected in age progression.</p>
+<div class="flex gap-3">
+<button class="font-label-sm text-label-sm text-on-surface-variant hover:text-starlight-white transition-colors px-3 py-1.5 rounded">Ignore</button>
+<button class="font-label-sm text-label-sm border border-outline/30 text-inverse-surface hover:border-copper-glow hover:text-copper-glow px-4 py-1.5 rounded-lg transition-colors">View Sources</button>
+<button class="font-label-sm text-label-sm border border-copper-glow text-copper-glow hover:bg-copper-glow hover:text-void-black px-4 py-1.5 rounded-lg transition-colors shadow-[0_0_15px_rgba(230,162,126,0.1)]">Resolve</button>
+</div>
+</footer>
+</article>
+<!-- Card 2 -->
+<article class="glass-card rounded-xl p-6 flex flex-col gap-4 glow-hover transition-all duration-500 col-span-1 relative group">
+<header class="flex justify-between items-start border-b border-starlight-white/5 pb-4">
+<div>
+<span class="font-label-sm text-label-sm text-copper-glow uppercase tracking-widest mb-1 block">Location Geography</span>
+<h2 class="font-headline-md text-headline-md text-starlight-white">The Ashen Wastes</h2>
+</div>
+</header>
+<div class="flex-1 flex flex-col gap-4 py-2">
+<div class="bg-deep-charcoal/50 rounded-lg p-3 border border-starlight-white/5">
+<div class="font-label-sm text-label-sm text-on-surface-variant mb-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">public</span>
+                            World Atlas
+                        </div>
+<p class="font-body-md text-body-md text-inverse-surface text-sm">
+                            Described as bordering the <span class="text-copper-glow">Eastern Sea</span>.
+                        </p>
+</div>
+<div class="bg-deep-charcoal/50 rounded-lg p-3 border border-starlight-white/5">
+<div class="font-label-sm text-label-sm text-on-surface-variant mb-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px]">menu_book</span>
+                            Prologue
+                        </div>
+<p class="font-body-md text-body-md text-inverse-surface text-sm">
+                            Travellers journeyed <span class="text-copper-glow">Westward</span> from the Wastes to reach the ocean.
+                        </p>
+</div>
+</div>
+<footer class="mt-auto pt-4 flex flex-col gap-3">
+<div class="flex gap-2 w-full">
+<button class="flex-1 font-label-sm text-label-sm border border-outline/30 text-inverse-surface hover:border-copper-glow hover:text-copper-glow py-1.5 rounded-lg transition-colors text-center">Edit Atlas</button>
+<button class="flex-1 font-label-sm text-label-sm border border-copper-glow text-copper-glow hover:bg-copper-glow hover:text-void-black py-1.5 rounded-lg transition-colors text-center">Resolve</button>
+</div>
+<button class="w-full font-label-sm text-label-sm text-on-surface-variant hover:text-starlight-white transition-colors py-1 text-center">Dismiss</button>
+</footer>
+</article>
+</div>
+</main>
+</body></html>

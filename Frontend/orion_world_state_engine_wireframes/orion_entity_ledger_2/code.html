@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Orion - Character Profile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.cdnfonts.com/css/geist-sans" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#131315",
+                        "primary-fixed-dim": "#feb68d",
+                        "inverse-surface": "#e5e1e4",
+                        "starlight-white": "#FAFAFA",
+                        "surface-variant": "#353437",
+                        "on-primary": "#502406",
+                        "on-secondary-fixed": "#171b27",
+                        "on-primary-container": "#522608",
+                        "error-container": "#93000a",
+                        "copper-glow": "#E6A27E",
+                        "tertiary-container": "#9b9999",
+                        "secondary-fixed": "#dee2f2",
+                        "surface": "#131315",
+                        "on-secondary-fixed-variant": "#424754",
+                        "outline": "#9f8d84",
+                        "surface-container": "#201f22",
+                        "secondary": "#c2c6d6",
+                        "error": "#ffb4ab",
+                        "inverse-primary": "#875130",
+                        "surface-container-lowest": "#0e0e10",
+                        "void-black": "#000000",
+                        "secondary-container": "#424754",
+                        "on-secondary-container": "#b0b5c4",
+                        "surface-container-low": "#1c1b1d",
+                        "surface-container-high": "#2a2a2c",
+                        "tertiary-fixed": "#e5e2e1",
+                        "surface-tint": "#feb68d",
+                        "on-primary-fixed": "#321200",
+                        "on-secondary": "#2b303c",
+                        "outline-variant": "#52443c",
+                        "on-error": "#690005",
+                        "primary": "#feb68d",
+                        "surface-container-highest": "#353437",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#1b1b1b",
+                        "secondary-fixed-dim": "#c2c6d6",
+                        "deep-charcoal": "#121212",
+                        "on-background": "#e5e1e4",
+                        "primary-fixed": "#ffdbc9",
+                        "inverse-on-surface": "#313032",
+                        "surface-dim": "#131315",
+                        "on-surface": "#e5e1e4",
+                        "tertiary": "#c8c6c5",
+                        "on-primary-fixed-variant": "#6b3a1b",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "on-tertiary": "#303030",
+                        "surface-bright": "#39393b",
+                        "primary-container": "#cc8b65",
+                        "on-tertiary-fixed-variant": "#474746",
+                        "on-surface-variant": "#d7c2b8",
+                        "on-tertiary-container": "#323131"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "16px",
+                        "nav-rail-width": "64px",
+                        "stack-sm": "8px",
+                        "gutter": "24px",
+                        "side-panel-width": "320px",
+                        "margin-safe": "40px",
+                        "stack-lg": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["\"Source Serif 4\""],
+                        "display-lg": ["\"Source Serif 4\""],
+                        "label-sm": ["Space Grotesk"],
+                        "headline-lg-mobile": ["\"Source Serif 4\""],
+                        "headline-lg": ["\"Source Serif 4\""],
+                        "body-lg": ["Geist"],
+                        "body-md": ["Geist"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "300" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { background-color: theme('colors.void-black'); color: theme('colors.on-background'); }
+        .glass-panel { background: rgba(29, 29, 29, 0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(250, 250, 250, 0.1); }
+        .glass-header { background: rgba(42, 42, 44, 0.5); border-bottom: 1px solid rgba(250, 250, 250, 0.1); }
+        .glow-active { position: relative; }
+        .glow-active::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle, rgba(254,182,141,0.05) 0%, transparent 70%); filter: blur(40px); z-index: -1; pointer-events: none; }
+        .thin-icon { font-variation-settings: 'FILL' 0, 'wght' 200, 'GRAD' 0, 'opsz' 24; }
+        .thin-icon-filled { font-variation-settings: 'FILL' 1, 'wght' 200, 'GRAD' 0, 'opsz' 24; }
+        .ghost-button { border: 1px solid theme('colors.copper-glow'); color: theme('colors.copper-glow'); background: transparent; transition: all 0.3s ease; }
+        .ghost-button:hover { background: theme('colors.copper-glow'); color: theme('colors.void-black'); }
+        .input-underline { border: none; border-bottom: 1px solid theme('colors.surface-variant'); background: transparent; border-radius: 0; transition: border-color 0.3s ease; }
+        .input-underline:focus { outline: none; border-bottom-color: theme('colors.copper-glow'); box-shadow: none; }
+        
+        /* Scrollbar styling for side panel */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: theme('colors.surface-variant'); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: theme('colors.tertiary-container'); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden font-body-md text-body-md selection:bg-primary-fixed-dim selection:text-on-primary">
+<!-- Floating Time & Status Bar -->
+<div class="fixed top-6 right-[344px] z-[60] flex items-center gap-3 bg-surface-container-high/40 backdrop-blur-md border border-starlight-white/10 rounded-full px-4 py-2 shadow-lg">
+<span class="font-label-sm text-starlight-white tracking-widest text-xs opacity-80">12:42 AM</span>
+<div class="h-3 w-[1px] bg-starlight-white/20"></div>
+<button class="flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined thin-icon text-sm">radio</span>
+</button>
+</div>
+<!-- Main Stage (The Void) -->
+<main class="flex-1 ml-nav-rail-width bg-background relative overflow-hidden flex z-10 h-full pt-10">
+<!-- Abstract Background Element -->
+<div class="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-primary/5 rounded-full filter blur-[100px] opacity-30 pointer-events-none"></div>
+<!-- Simulated Document Area (to show context) -->
+<div class="flex-1 p-10 overflow-y-auto z-10 pr-[340px]">
+<div class="max-w-3xl mx-auto space-y-8 opacity-40 hover:opacity-60 transition-opacity duration-500 mt-10">
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Chapter 4: The Descent</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                    Ethan hesitated at the edge of the chasm. The air was thick with the scent of ozone and crushed stone, a stark contrast to the sterile environment of the upper levels. He adjusted the straps of his pack, the weight a constant reminder of the supplies he'd secured—or stolen, depending on who you asked.
+                </p>
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                    "We don't have all day," Lyra's voice crackled through the comms. "The perimeter sensors are already resetting."
+                </p>
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+                    He knew she was right. The <span class="border-b border-primary/30 pb-0.5 text-starlight-white cursor-pointer hover:border-primary transition-colors">Syndicate</span> wouldn't wait. Taking a deep breath, he stepped into the void, the familiar hum of the repulsor boots kicking in just before he hit terminal velocity.
+                </p>
+</div>
+</div>
+<!-- Contextual Side Panel (Entity Details) -->
+<aside class="fixed right-0 top-0 bottom-0 w-side-panel-width bg-surface-container-low/95 backdrop-blur-xl border-l border-starlight-white/10 shadow-2xl flex flex-col z-40 translate-x-0 transition-transform duration-500 ease-in-out">
+<!-- Panel Header Navigation -->
+<div class="flex justify-between items-center px-4 pt-6 pb-2 border-b border-starlight-white/5">
+<div class="flex space-x-6 text-on-tertiary-fixed-variant">
+<button class="border-b-2 border-primary text-primary pb-1 flex flex-col items-center gap-1 group">
+<span class="material-symbols-outlined thin-icon-filled group-hover:text-primary-fixed-dim transition-colors text-sm">group</span>
+<span class="font-label-sm text-label-sm tracking-wider uppercase text-[10px]">Characters</span>
+</button>
+<button class="pb-1 flex flex-col items-center gap-1 group hover:text-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined thin-icon text-sm">location_on</span>
+<span class="font-label-sm text-label-sm tracking-wider uppercase text-[10px]">Locations</span>
+</button>
+<button class="pb-1 flex flex-col items-center gap-1 group hover:text-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined thin-icon text-sm">category</span>
+<span class="font-label-sm text-label-sm tracking-wider uppercase text-[10px]">Objects</span>
+</button>
+<button class="pb-1 flex flex-col items-center gap-1 group hover:text-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined thin-icon text-sm">event_note</span>
+<span class="font-label-sm text-label-sm tracking-wider uppercase text-[10px]">Events</span>
+</button>
+</div>
+<button class="text-on-surface-variant hover:text-starlight-white transition-colors mb-2">
+<span class="material-symbols-outlined thin-icon">close</span>
+</button>
+</div>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-5 space-y-8">
+<!-- Header / Portrait -->
+<div class="flex items-start gap-4 glow-active">
+<div class="w-20 h-24 rounded bg-surface-container-high border border-starlight-white/10 overflow-hidden shrink-0 relative group">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="A cinematic, moody portrait of a rugged male sci-fi protagonist. He has dark, messy hair and intense eyes, illuminated by faint blue holographic light against a dark industrial background. The style is hyper-realistic digital art with deep shadows and subtle copper highlights on his worn tactical gear. 8k resolution, atmospheric lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCoFjO1n97YH2VMGTmFFSWuer65vFN0ios4JWMCJLNrREpa2pHl_5KU0kBZKE3HvFL0y90WLLdMWCLQrTx9Q6YaxZdCwRLd_cYUvwgWIrUbNRQcTRp1SM0jlyKEOBXwbfE_4DgYD5KVumAxemw3Wmc8UPl5OzgxmvZFwcGHYBCxzI0OSUY9eNxeHLO723TuPfZbbw9lKSQMtDLJfuZ0o0s4po__Ev94SRfPXtr4i1cVQeqb6ZoTYhzagQ"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+<button class="absolute bottom-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 p-1 rounded backdrop-blur text-starlight-white hover:text-primary">
+<span class="material-symbols-outlined thin-icon text-sm">edit</span>
+</button>
+</div>
+<div class="flex-1 pt-1">
+<div class="flex justify-between items-start">
+<h2 class="font-headline-md text-headline-md text-starlight-white leading-tight">Ethan Vance</h2>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined thin-icon text-lg">more_horiz</span>
+</button>
+</div>
+<p class="font-label-sm text-label-sm text-primary/80 uppercase tracking-widest mt-1">Protagonist</p>
+<div class="mt-3 space-y-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined thin-icon text-sm text-on-surface-variant">badge</span>
+<span class="font-body-md text-body-md text-on-surface-variant text-sm">Aliases: "Wraith"</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Traits / Meta -->
+<div class="glass-panel rounded-lg p-4 space-y-3">
+<h3 class="font-label-sm text-label-sm text-copper-glow uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined thin-icon text-sm">psychology</span>
+                        Core Traits
+                    </h3>
+<div class="flex flex-wrap gap-2">
+<span class="px-2 py-1 bg-surface-container text-on-surface-variant font-label-sm text-[11px] rounded border border-starlight-white/5">Pragmatic</span>
+<span class="px-2 py-1 bg-surface-container text-on-surface-variant font-label-sm text-[11px] rounded border border-starlight-white/5">Cynical</span>
+<span class="px-2 py-1 bg-surface-container text-on-surface-variant font-label-sm text-[11px] rounded border border-starlight-white/5">Loyal to a fault</span>
+<button class="px-2 py-1 bg-transparent text-primary/60 hover:text-primary font-label-sm text-[11px] rounded border border-dashed border-primary/30 hover:border-primary/60 transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[10px]">add</span> Add
+                        </button>
+</div>
+</div>
+<!-- Facts Ledger -->
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<h3 class="font-label-sm text-label-sm text-copper-glow uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined thin-icon text-sm">format_list_bulleted</span>
+                            Known Facts
+                        </h3>
+<button class="ghost-button font-label-sm text-[10px] px-2 py-1 rounded-sm uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">add</span> Add Fact
+                        </button>
+</div>
+<div class="space-y-2">
+<!-- Fact Item -->
+<div class="group relative pl-3 py-2 border-l border-surface-variant hover:border-primary/50 transition-colors">
+<div class="absolute -left-[5px] top-3 w-2 h-2 rounded-full bg-surface-variant group-hover:bg-primary/50 transition-colors"></div>
+<p class="font-body-md text-sm text-on-surface leading-snug">Former operative for the Syndicate's Deep Void division.</p>
+<div class="flex items-center gap-2 mt-1.5">
+<span class="text-[9px] uppercase tracking-wider font-label-sm px-1.5 py-0.5 rounded-sm bg-primary/10 text-primary">Extracted</span>
+<span class="text-xs text-on-surface-variant/50">Chapter 1</span>
+</div>
+</div>
+<!-- Fact Item -->
+<div class="group relative pl-3 py-2 border-l border-surface-variant hover:border-primary/50 transition-colors">
+<div class="absolute -left-[5px] top-3 w-2 h-2 rounded-full bg-surface-variant group-hover:bg-primary/50 transition-colors"></div>
+<p class="font-body-md text-sm text-on-surface leading-snug">Requires neural stabilizers due to prolonged exposure to raw tachyon fields.</p>
+<div class="flex items-center gap-2 mt-1.5">
+<span class="text-[9px] uppercase tracking-wider font-label-sm px-1.5 py-0.5 rounded-sm border border-surface-variant text-on-surface-variant">Manual</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Relationships -->
+<div class="space-y-4 pt-2">
+<div class="flex justify-between items-center border-b border-starlight-white/5 pb-2">
+<h3 class="font-label-sm text-label-sm text-copper-glow uppercase tracking-wider flex items-center gap-2">
+<span class="material-symbols-outlined thin-icon text-sm">hub</span>
+                            Web of Influence
+                        </h3>
+<button class="text-primary/60 hover:text-primary transition-colors">
+<span class="material-symbols-outlined thin-icon text-sm">add_circle</span>
+</button>
+</div>
+<div class="space-y-3">
+<!-- Relationship Link -->
+<div class="flex items-center justify-between p-2 rounded bg-surface-container-lowest border border-starlight-white/5 hover:border-primary/30 transition-colors cursor-pointer group">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant font-headline-md text-sm">L</div>
+<div>
+<p class="font-body-md text-sm text-starlight-white group-hover:text-primary transition-colors">Lyra</p>
+<p class="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider">Handler / Ally</p>
+</div>
+</div>
+<span class="material-symbols-outlined thin-icon text-on-surface-variant/50 group-hover:text-primary/80 transition-colors">chevron_right</span>
+</div>
+<!-- Relationship Link -->
+<div class="flex items-center justify-between p-2 rounded bg-surface-container-lowest border border-starlight-white/5 hover:border-primary/30 transition-colors cursor-pointer group">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant font-headline-md text-sm">S</div>
+<div>
+<p class="font-body-md text-sm text-starlight-white group-hover:text-primary transition-colors">The Syndicate</p>
+<p class="font-label-sm text-[10px] text-error uppercase tracking-wider">Antagonist Org</p>
+</div>
+</div>
+<span class="material-symbols-outlined thin-icon text-on-surface-variant/50 group-hover:text-primary/80 transition-colors">chevron_right</span>
+</div>
+</div>
+</div>
+<!-- Appearances -->
+<div class="space-y-3 pt-2 pb-10">
+<h3 class="font-label-sm text-label-sm text-copper-glow uppercase tracking-wider flex items-center gap-2 border-b border-starlight-white/5 pb-2">
+<span class="material-symbols-outlined thin-icon text-sm">auto_stories</span>
+                        Appearances
+                    </h3>
+<div class="flex flex-wrap gap-2">
+<a class="px-3 py-1.5 rounded-sm bg-surface-container-lowest border border-starlight-white/5 text-sm text-on-surface hover:border-primary hover:text-primary transition-colors flex items-center gap-1.5" href="#">
+<span class="material-symbols-outlined text-[14px] text-primary/60">bookmark_border</span>
+                            Ch. 1
+                        </a>
+<a class="px-3 py-1.5 rounded-sm bg-surface-container-lowest border border-starlight-white/5 text-sm text-on-surface hover:border-primary hover:text-primary transition-colors flex items-center gap-1.5" href="#">
+<span class="material-symbols-outlined text-[14px] text-primary/60">bookmark_border</span>
+                            Ch. 2
+                        </a>
+<a class="px-3 py-1.5 rounded-sm bg-primary/10 border border-primary/30 text-sm text-primary flex items-center gap-1.5" href="#">
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">bookmark</span>
+                            Ch. 4
+                        </a>
+</div>
+</div>
+</div>
+</aside>
+</main>
+<!-- SideNavBar (Left Rail) -->
+<nav class="fixed left-0 top-0 h-full w-nav-rail-width bg-void-black border-r border-starlight-white/10 flex flex-col items-center py-stack-md z-50">
+<!-- Brand/Avatar Toggle -->
+<button class="mb-8 flex flex-col items-center gap-2 group cursor-pointer w-full hover:bg-white/5 py-2 transition-colors rounded-xl" title="Toggle Menu">
+<div class="w-10 h-10 rounded-full border border-primary/30 flex items-center justify-center bg-surface-container overflow-hidden relative group-hover:border-primary transition-colors">
+<img class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" data-alt="A minimalist logo design for 'Orion'. A stylized geometric O resembling a constellation or an eye, rendered in glowing copper tones against a deep black background. Professional, sleek, sci-fi aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtwDmvrVkD3PVd-az313oSNDMzfVtgaQBKA9szI2U4s52HlpTfba9ZA8QWAcO8RZbJK7so2Blxc7Ge7FQeV89QiynUkbz3JLQ0AvL5rerVEQSpDE4iwdqX9EelTGbuRRJRtiYSViw7G1cz2U5zEY0xl0D5d_VN_NfhdBFGyoHdchcPdpN4ArJCwaduxmuDJGK7qHYUNxE2OchfVgvQvX7x14Eg5NxtoZkSa7Fe03DEwP5A0zttMCZshA"/>
+</div>
+</button>
+<!-- Primary Navigation -->
+<div class="flex-1 w-full flex flex-col gap-2">
+<a class="flex flex-col items-center justify-center py-4 text-on-surface-variant/60 hover:text-primary transition-colors duration-300 group" href="#">
+<span class="material-symbols-outlined thin-icon group-hover:scale-110 transition-transform">home</span>
+</a>
+<a class="flex flex-col items-center justify-center py-4 text-on-surface-variant/60 hover:text-primary transition-colors duration-300 group" href="#">
+<span class="material-symbols-outlined thin-icon group-hover:scale-110 transition-transform">menu_book</span>
+</a>
+<!-- Active Tab -->
+<a class="relative flex flex-col items-center justify-center py-4 text-primary after:absolute after:left-0 after:h-8 after:w-0.5 after:bg-primary after:shadow-[0_0_12px_rgba(254,182,141,0.5)] scale-95 transition-transform group" href="#">
+<span class="material-symbols-outlined thin-icon-filled">public</span>
+</a>
+<a class="flex flex-col items-center justify-center py-4 text-on-surface-variant/60 hover:text-primary transition-colors duration-300 group" href="#">
+<span class="material-symbols-outlined thin-icon group-hover:scale-110 transition-transform">bubble_chart</span>
+</a>
+<a class="flex flex-col items-center justify-center py-4 text-on-surface-variant/60 hover:text-primary transition-colors duration-300 group" href="#">
+<span class="material-symbols-outlined thin-icon group-hover:scale-110 transition-transform">timeline</span>
+</a>
+</div>
+<!-- Bottom Navigation -->
+<div class="w-full flex flex-col gap-2 mt-auto border-t border-starlight-white/10 pt-4">
+<a class="flex flex-col items-center justify-center py-4 text-on-surface-variant/60 hover:text-primary transition-colors duration-300 group" href="#">
+<span class="material-symbols-outlined thin-icon group-hover:scale-110 transition-transform">person_outline</span>
+</a>
+<a class="flex flex-col items-center justify-center py-4 text-on-surface-variant/60 hover:text-primary transition-colors duration-300 group" href="#">
+<span class="material-symbols-outlined thin-icon group-hover:scale-110 transition-transform">settings</span>
+</a>
+</div>
+</nav>
+</body></html>

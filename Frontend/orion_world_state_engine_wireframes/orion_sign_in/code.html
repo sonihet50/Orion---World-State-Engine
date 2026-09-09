@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Orion - Enter the Archive</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400&amp;family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,500&amp;family=Space+Grotesk:wght@500&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "background": "#131315",
+                    "primary-fixed-dim": "#feb68d",
+                    "inverse-surface": "#e5e1e4",
+                    "starlight-white": "#FAFAFA",
+                    "surface-variant": "#353437",
+                    "on-primary": "#502406",
+                    "on-secondary-fixed": "#171b27",
+                    "on-primary-container": "#522608",
+                    "error-container": "#93000a",
+                    "copper-glow": "#E6A27E",
+                    "tertiary-container": "#9b9999",
+                    "secondary-fixed": "#dee2f2",
+                    "surface": "#131315",
+                    "on-secondary-fixed-variant": "#424754",
+                    "outline": "#9f8d84",
+                    "surface-container": "#201f22",
+                    "secondary": "#c2c6d6",
+                    "error": "#ffb4ab",
+                    "inverse-primary": "#875130",
+                    "surface-container-lowest": "#0e0e10",
+                    "void-black": "#000000",
+                    "secondary-container": "#424754",
+                    "on-secondary-container": "#b0b5c4",
+                    "surface-container-low": "#1c1b1d",
+                    "surface-container-high": "#2a2a2c",
+                    "tertiary-fixed": "#e5e2e1",
+                    "surface-tint": "#feb68d",
+                    "on-primary-fixed": "#321200",
+                    "on-secondary": "#2b303c",
+                    "outline-variant": "#52443c",
+                    "on-error": "#690005",
+                    "primary": "#feb68d",
+                    "surface-container-highest": "#353437",
+                    "on-error-container": "#ffdad6",
+                    "on-tertiary-fixed": "#1b1b1b",
+                    "secondary-fixed-dim": "#c2c6d6",
+                    "deep-charcoal": "#121212",
+                    "on-background": "#e5e1e4",
+                    "primary-fixed": "#ffdbc9",
+                    "inverse-on-surface": "#313032",
+                    "surface-dim": "#131315",
+                    "on-surface": "#e5e1e4",
+                    "tertiary": "#c8c6c5",
+                    "on-primary-fixed-variant": "#6b3a1b",
+                    "tertiary-fixed-dim": "#c8c6c5",
+                    "on-tertiary": "#303030",
+                    "surface-bright": "#39393b",
+                    "primary-container": "#cc8b65",
+                    "on-tertiary-fixed-variant": "#474746",
+                    "on-surface-variant": "#d7c2b8",
+                    "on-tertiary-container": "#323131"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "stack-md": "16px",
+                    "nav-rail-width": "64px",
+                    "stack-sm": "8px",
+                    "gutter": "24px",
+                    "side-panel-width": "320px",
+                    "margin-safe": "40px",
+                    "stack-lg": "32px"
+            },
+            "fontFamily": {
+                    "headline-md": [
+                            "\"Source Serif 4\""
+                    ],
+                    "display-lg": [
+                            "\"Source Serif 4\""
+                    ],
+                    "label-sm": [
+                            "Space Grotesk"
+                    ],
+                    "headline-lg-mobile": [
+                            "\"Source Serif 4\""
+                    ],
+                    "headline-lg": [
+                            "\"Source Serif 4\""
+                    ],
+                    "body-lg": [
+                            "Geist"
+                    ],
+                    "body-md": [
+                            "Geist"
+                    ]
+            },
+            "fontSize": {
+                    "headline-md": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "display-lg": [
+                            "48px",
+                            {
+                                    "lineHeight": "56px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "300"
+                            }
+                    ],
+                    "label-sm": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "headline-lg-mobile": [
+                            "28px",
+                            {
+                                    "lineHeight": "36px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-lg": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-lg": [
+                            "18px",
+                            {
+                                    "lineHeight": "28px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-md": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "400"
+                            }
+                    ]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.void-black');
+            background-image: radial-gradient(circle at 50% 0%, rgba(230, 162, 126, 0.03) 0%, transparent 70%);
+        }
+        
+        /* Thin line icon style */
+        .material-symbols-outlined {
+          font-variation-settings:
+          'FILL' 0,
+          'wght' 200,
+          'GRAD' 0,
+          'opsz' 24;
+        }
+
+        .input-underline {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid theme('colors.surface-container-highest');
+            border-radius: 0;
+            padding: 12px 0;
+            transition: border-color 0.3s ease;
+        }
+        
+        .input-underline:focus {
+            outline: none;
+            box-shadow: none;
+            border-bottom-color: theme('colors.copper-glow');
+        }
+        
+        .btn-ghost {
+            border: 1px solid theme('colors.copper-glow');
+            color: theme('colors.copper-glow');
+            transition: all 0.3s ease;
+        }
+        
+        .btn-ghost:hover {
+            background-color: theme('colors.copper-glow');
+            color: theme('colors.void-black');
+        }
+        
+        .btn-text {
+            color: theme('colors.on-surface-variant');
+            transition: color 0.3s ease;
+        }
+        
+        .btn-text:hover {
+            color: theme('colors.starlight-white');
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center text-on-surface antialiased selection:bg-copper-glow/30 selection:text-starlight-white">
+<div class="w-full max-w-md px-gutter relative z-10">
+<!-- Tonal Layering / Floating Panel -->
+<div class="bg-surface-container-low/95 backdrop-blur-xl border border-starlight-white/10 rounded-xl p-8 shadow-2xl relative overflow-hidden group">
+<!-- Subtle Hover Glow Effect via pseudo-element -->
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_-20%,rgba(230,162,126,0.08),transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+<!-- Logo Section -->
+<div class="flex flex-col items-center justify-center mb-stack-lg relative z-10">
+<div class="w-16 h-16 rounded-full border border-starlight-white/5 flex items-center justify-center mb-stack-sm bg-surface-container/50">
+<span class="material-symbols-outlined text-[32px] text-copper-glow" style="font-variation-settings: 'wght' 100;">bubble_chart</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-primary tracking-tighter">Orion</h2>
+</div>
+<!-- Header -->
+<div class="text-center mb-stack-lg relative z-10">
+<h1 class="font-display-lg text-display-lg text-starlight-white mb-2 hidden md:block">Enter the Archive</h1>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-starlight-white mb-2 md:hidden">Enter the Archive</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Your sanctuary for world-building awaits.</p>
+</div>
+<!-- Form -->
+<form class="space-y-stack-md relative z-10" onsubmit="event.preventDefault();">
+<div class="flex flex-col">
+<label class="sr-only" for="email">Email Address</label>
+<input class="input-underline font-body-md text-body-md text-starlight-white placeholder:text-surface-container-highest w-full" id="email" name="email" placeholder="Email Address" required="" type="email"/>
+</div>
+<div class="flex flex-col">
+<label class="sr-only" for="password">Password</label>
+<input class="input-underline font-body-md text-body-md text-starlight-white placeholder:text-surface-container-highest w-full" id="password" name="password" placeholder="Password" required="" type="password"/>
+</div>
+<div class="pt-stack-sm flex items-center justify-between">
+<button class="btn-text font-label-sm text-label-sm uppercase tracking-widest" type="button">Forgot Password?</button>
+</div>
+<div class="pt-stack-md">
+<button class="btn-ghost w-full py-3 rounded uppercase font-label-sm text-label-sm tracking-widest flex items-center justify-center gap-2" type="submit">
+<span>Unlock</span>
+<span class="material-symbols-outlined text-[18px]">key</span>
+</button>
+</div>
+</form>
+<!-- Social Login Divider -->
+<div class="mt-stack-lg relative z-10">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-starlight-white/5"></div>
+</div>
+<div class="relative flex justify-center text-sm">
+<span class="px-2 bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase">Or access via</span>
+</div>
+</div>
+<!-- Social Login Buttons -->
+<div class="mt-stack-md flex justify-center gap-4 relative z-10">
+<button class="w-12 h-12 rounded-full border border-starlight-white/10 flex items-center justify-center text-on-surface-variant hover:text-starlight-white hover:border-starlight-white/30 transition-colors bg-surface-container-lowest/50" type="button">
+<span class="material-symbols-outlined" style="font-variation-settings: 'wght' 200;">fingerprint</span>
+</button>
+<button class="w-12 h-12 rounded-full border border-starlight-white/10 flex items-center justify-center text-on-surface-variant hover:text-starlight-white hover:border-starlight-white/30 transition-colors bg-surface-container-lowest/50" type="button">
+<span class="material-symbols-outlined" style="font-variation-settings: 'wght' 200;">public</span>
+</button>
+</div>
+<div class="mt-stack-lg text-center relative z-10">
+<p class="font-body-md text-body-md text-on-surface-variant">
+                    New to the Archive? <button class="text-copper-glow hover:text-primary-fixed transition-colors ml-1">Forge an entry</button>
+</p>
+</div>
+</div>
+</div>
+<!-- Background atmospheric elements -->
+<div class="fixed inset-0 pointer-events-none z-0">
+<div class="absolute top-0 right-0 w-1/2 h-1/2 bg-[radial-gradient(ellipse_at_top_right,rgba(230,162,126,0.02),transparent_70%)]"></div>
+<div class="absolute bottom-0 left-0 w-1/2 h-1/2 bg-[radial-gradient(ellipse_at_bottom_left,rgba(254,182,141,0.01),transparent_70%)]"></div>
+</div>
+</body></html>

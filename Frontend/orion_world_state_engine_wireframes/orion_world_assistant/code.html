@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Orion - Character / World Assistant</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,200..900;1,8..60,200..900&amp;family=Space+Grotesk:wght@300..700&amp;family=Geist:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#131315",
+                        "primary-fixed-dim": "#feb68d",
+                        "inverse-surface": "#e5e1e4",
+                        "starlight-white": "#FAFAFA",
+                        "surface-variant": "#353437",
+                        "on-primary": "#502406",
+                        "on-secondary-fixed": "#171b27",
+                        "on-primary-container": "#522608",
+                        "error-container": "#93000a",
+                        "copper-glow": "#E6A27E",
+                        "tertiary-container": "#9b9999",
+                        "secondary-fixed": "#dee2f2",
+                        "surface": "#131315",
+                        "on-secondary-fixed-variant": "#424754",
+                        "outline": "#9f8d84",
+                        "surface-container": "#201f22",
+                        "secondary": "#c2c6d6",
+                        "error": "#ffb4ab",
+                        "inverse-primary": "#875130",
+                        "surface-container-lowest": "#0e0e10",
+                        "void-black": "#000000",
+                        "secondary-container": "#424754",
+                        "on-secondary-container": "#b0b5c4",
+                        "surface-container-low": "#1c1b1d",
+                        "surface-container-high": "#2a2a2c",
+                        "tertiary-fixed": "#e5e2e1",
+                        "surface-tint": "#feb68d",
+                        "on-primary-fixed": "#321200",
+                        "on-secondary": "#2b303c",
+                        "outline-variant": "#52443c",
+                        "on-error": "#690005",
+                        "primary": "#feb68d",
+                        "surface-container-highest": "#353437",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#1b1b1b",
+                        "secondary-fixed-dim": "#c2c6d6",
+                        "deep-charcoal": "#121212",
+                        "on-background": "#e5e1e4",
+                        "primary-fixed": "#ffdbc9",
+                        "inverse-on-surface": "#313032",
+                        "surface-dim": "#131315",
+                        "on-surface": "#e5e1e4",
+                        "tertiary": "#c8c6c5",
+                        "on-primary-fixed-variant": "#6b3a1b",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "on-tertiary": "#303030",
+                        "surface-bright": "#39393b",
+                        "primary-container": "#cc8b65",
+                        "on-tertiary-fixed-variant": "#474746",
+                        "on-surface-variant": "#d7c2b8",
+                        "on-tertiary-container": "#323131"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "16px",
+                        "nav-rail-width": "64px",
+                        "stack-sm": "8px",
+                        "gutter": "24px",
+                        "side-panel-width": "360px",
+                        "margin-safe": "40px",
+                        "stack-lg": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["\"Source Serif 4\""],
+                        "display-lg": ["\"Source Serif 4\""],
+                        "label-sm": ["Space Grotesk"],
+                        "headline-lg-mobile": ["\"Source Serif 4\""],
+                        "headline-lg": ["\"Source Serif 4\""],
+                        "body-lg": ["Geist"],
+                        "body-md": ["Geist"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "300"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { background-color: #000000; color: #e5e1e4; overflow-x: hidden; }
+        .glass-panel {
+            background: rgba(28, 27, 29, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .glow-active {
+            box-shadow: 0 0 40px rgba(254, 182, 141, 0.05);
+        }
+    </style>
+</head>
+<body class="flex h-screen w-full font-body-md text-body-md">
+<!-- Mock Background Stage (Workspace) -->
+<div class="flex-1 bg-surface-container-lowest relative overflow-hidden">
+<div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: radial-gradient(circle at 50% 50%, rgba(254,182,141,0.1) 0%, transparent 50%);"></div>
+<div class="p-gutter h-full flex items-center justify-center text-on-surface-variant">
+<p class="font-headline-lg text-headline-lg opacity-30">Writing Room / Manuscript Canvas</p>
+</div>
+</div>
+<!-- Assistant Slide-Over Panel -->
+<div class="fixed right-0 top-0 h-full w-side-panel-width z-50 glass-panel border-l border-starlight-white/10 shadow-2xl flex flex-col translate-x-0 transition-transform duration-500 ease-in-out">
+<!-- Header -->
+<div class="h-16 flex items-center justify-between px-6 border-b border-starlight-white/5 bg-surface-dim/50">
+<div class="flex items-center gap-3 text-copper-glow">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">auto_awesome</span>
+<span class="font-headline-md text-headline-md text-primary tracking-tight">Archivist</span>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Chat History -->
+<div class="flex-1 overflow-y-auto p-6 flex flex-col gap-6 custom-scrollbar">
+<!-- User Message -->
+<div class="flex flex-col items-end gap-2">
+<div class="bg-surface-container-high px-4 py-3 rounded-2xl rounded-tr-sm max-w-[85%] border border-starlight-white/5">
+<p class="text-on-surface">What was the exact weather like during the Siege of Aethelgard, and who was commanding the northern gate?</p>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant/50">10:42 AM</span>
+</div>
+<!-- Assistant Response -->
+<div class="flex flex-col items-start gap-2">
+<div class="bg-surface-container px-4 py-3 rounded-2xl rounded-tl-sm max-w-[95%] border border-primary/20 glow-active">
+<div class="flex items-center gap-2 mb-2 pb-2 border-b border-starlight-white/5">
+<span class="material-symbols-outlined text-[14px] text-primary">data_check</span>
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider">Grounded Response</span>
+</div>
+<p class="text-on-surface mb-4 leading-relaxed">
+                        Based on extracted and manually authored world information, the Siege of Aethelgard took place during an unseasonable late-autumn blizzard. The biting wind significantly reduced visibility for the defending archers.
+                    </p>
+<p class="text-on-surface leading-relaxed">
+                        The northern gate was commanded by <span class="text-primary-fixed-dim cursor-pointer hover:underline decoration-primary/50 underline-offset-4">Captain Vaelin</span>, who had recently been demoted from the Royal Guard following the incident at the Sunken Spire.
+                    </p>
+<!-- Source Links -->
+<div class="mt-4 flex flex-wrap gap-2">
+<div class="flex items-center gap-1.5 px-2 py-1 bg-surface-container-high rounded border border-starlight-white/5 cursor-pointer hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-[12px] text-on-surface-variant">menu_book</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Chapter 14: The White Fall</span>
+</div>
+<div class="flex items-center gap-1.5 px-2 py-1 bg-surface-container-high rounded border border-starlight-white/5 cursor-pointer hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-[12px] text-on-surface-variant">person</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Captain Vaelin</span>
+</div>
+<div class="flex items-center gap-1.5 px-2 py-1 bg-surface-container-high rounded border border-starlight-white/5 cursor-pointer hover:border-primary/30 transition-colors">
+<span class="material-symbols-outlined text-[12px] text-on-surface-variant">location_on</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Aethelgard</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Typing Indicator (Mock) -->
+<div class="flex flex-col items-start gap-2 opacity-50">
+<div class="flex gap-1 items-center bg-surface-container px-4 py-3 rounded-2xl rounded-tl-sm border border-starlight-white/5">
+<div class="w-1.5 h-1.5 rounded-full bg-on-surface-variant animate-pulse"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-on-surface-variant animate-pulse" style="animation-delay: 150ms"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-on-surface-variant animate-pulse" style="animation-delay: 300ms"></div>
+</div>
+</div>
+</div>
+<!-- Input Area -->
+<div class="p-4 border-t border-starlight-white/5 bg-surface-container-low">
+<div class="relative flex items-end bg-surface-container rounded-lg border border-outline-variant focus-within:border-copper-glow focus-within:ring-1 focus-within:ring-copper-glow transition-all duration-300">
+<textarea class="w-full bg-transparent border-none text-on-surface placeholder-on-surface-variant/50 resize-none py-3 pl-4 pr-12 focus:ring-0 min-h-[44px] max-h-[120px] custom-scrollbar" oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'" placeholder="Ask a question about your world..." rows="1"></textarea>
+<button class="absolute right-2 bottom-2 text-on-surface-variant hover:text-primary p-1 rounded transition-colors">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+<div class="mt-2 text-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant/40">Archivist cross-references your lore entries and manuscript.</span>
+</div>
+</div>
+</div>
+</body></html>

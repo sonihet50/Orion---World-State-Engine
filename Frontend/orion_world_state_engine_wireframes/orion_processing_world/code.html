@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Orion - Extraction Progress</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "background": "#131315",
+                        "primary-fixed-dim": "#feb68d",
+                        "inverse-surface": "#e5e1e4",
+                        "starlight-white": "#FAFAFA",
+                        "surface-variant": "#353437",
+                        "on-primary": "#502406",
+                        "on-secondary-fixed": "#171b27",
+                        "on-primary-container": "#522608",
+                        "error-container": "#93000a",
+                        "copper-glow": "#E6A27E",
+                        "tertiary-container": "#9b9999",
+                        "secondary-fixed": "#dee2f2",
+                        "surface": "#131315",
+                        "on-secondary-fixed-variant": "#424754",
+                        "outline": "#9f8d84",
+                        "surface-container": "#201f22",
+                        "secondary": "#c2c6d6",
+                        "error": "#ffb4ab",
+                        "inverse-primary": "#875130",
+                        "surface-container-lowest": "#0e0e10",
+                        "void-black": "#000000",
+                        "secondary-container": "#424754",
+                        "on-secondary-container": "#b0b5c4",
+                        "surface-container-low": "#1c1b1d",
+                        "surface-container-high": "#2a2a2c",
+                        "tertiary-fixed": "#e5e2e1",
+                        "surface-tint": "#feb68d",
+                        "on-primary-fixed": "#321200",
+                        "on-secondary": "#2b303c",
+                        "outline-variant": "#52443c",
+                        "on-error": "#690005",
+                        "primary": "#feb68d",
+                        "surface-container-highest": "#353437",
+                        "on-error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#1b1b1b",
+                        "secondary-fixed-dim": "#c2c6d6",
+                        "deep-charcoal": "#121212",
+                        "on-background": "#e5e1e4",
+                        "primary-fixed": "#ffdbc9",
+                        "inverse-on-surface": "#313032",
+                        "surface-dim": "#131315",
+                        "on-surface": "#e5e1e4",
+                        "tertiary": "#c8c6c5",
+                        "on-primary-fixed-variant": "#6b3a1b",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "on-tertiary": "#303030",
+                        "surface-bright": "#39393b",
+                        "primary-container": "#cc8b65",
+                        "on-tertiary-fixed-variant": "#474746",
+                        "on-surface-variant": "#d7c2b8",
+                        "on-tertiary-container": "#323131"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "16px",
+                        "nav-rail-width": "64px",
+                        "stack-sm": "8px",
+                        "gutter": "24px",
+                        "side-panel-width": "320px",
+                        "margin-safe": "40px",
+                        "stack-lg": "32px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["\"Source Serif 4\""],
+                        "display-lg": ["\"Source Serif 4\""],
+                        "label-sm": ["Space Grotesk"],
+                        "headline-lg-mobile": ["\"Source Serif 4\""],
+                        "headline-lg": ["\"Source Serif 4\""],
+                        "body-lg": ["Geist"],
+                        "body-md": ["Geist"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "500" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "300" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["28px", { "lineHeight": "36px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    },
+                    "animation": {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'scan': 'scan 2s linear infinite',
+                        'fade-in-up': 'fadeInUp 0.5s ease-out forwards',
+                    },
+                    "keyframes": {
+                        scan: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(100%)' }
+                        },
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,300;400;500&display=swap');
+        
+        @font-face {
+            font-family: 'Geist';
+            src: url('https://cdn.jsdelivr.net/fontsource/fonts/geist-sans@latest/latin-400-normal.woff2') format('woff2');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        .ambient-glow {
+            background: radial-gradient(circle at center, rgba(230, 162, 126, 0.08) 0%, rgba(0,0,0,0) 70%);
+        }
+        
+        .entity-item {
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-void-black text-on-surface h-screen w-screen overflow-hidden flex flex-col items-center justify-center relative selection:bg-primary/30 selection:text-primary-fixed">
+<!-- Ambient Background Lighting -->
+<div class="absolute inset-0 ambient-glow animate-pulse-slow pointer-events-none z-0"></div>
+<!-- Minimal Top Action (Task Context) -->
+<div class="absolute top-0 right-0 p-gutter z-50">
+<button class="flex items-center gap-2 px-4 py-2 rounded-full border border-outline-variant text-on-surface-variant font-label-sm text-label-sm hover:text-primary hover:border-primary transition-colors duration-300 backdrop-blur-md bg-surface-dim/50">
+<span class="material-symbols-outlined" style="font-size: 16px;">close</span>
+            Cancel Import
+        </button>
+</div>
+<!-- Main Content Canvas -->
+<main class="relative z-10 w-full max-w-5xl px-gutter grid grid-cols-1 md:grid-cols-2 gap-stack-lg items-center">
+<!-- Left: Progress & Messaging -->
+<section class="flex flex-col gap-stack-lg pr-stack-lg">
+<div class="flex flex-col gap-stack-sm">
+<h1 class="font-display-lg text-display-lg text-on-surface tracking-tight">Building a first draft of your world.</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant/80">Analyzing manuscript syntax and mapping entity relationships. You remain the final authority on all lore.</p>
+</div>
+<!-- Progress Indicators -->
+<div class="flex flex-col gap-stack-md mt-stack-lg">
+<!-- Overall Progress -->
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-end">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-widest">Extraction Progress</span>
+<span class="font-label-sm text-label-sm text-copper-glow">42%</span>
+</div>
+<div class="h-1 w-full bg-surface-container-high rounded-full overflow-hidden relative">
+<div class="absolute inset-y-0 left-0 bg-copper-glow w-[42%] shadow-[0_0_12px_rgba(230,162,126,0.6)] transition-all duration-1000 ease-out"></div>
+</div>
+</div>
+<!-- Sub-tasks -->
+<div class="flex flex-col gap-3 mt-4">
+<div class="flex items-center gap-3 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-body-md text-body-md">Structural analysis complete</span>
+</div>
+<div class="flex items-center gap-3 text-primary">
+<span class="material-symbols-outlined animate-spin" style="font-size: 20px;">sync</span>
+<span class="font-body-md text-body-md text-copper-glow">Detecting characters and locations...</span>
+</div>
+<div class="flex items-center gap-3 text-on-surface-variant/40">
+<span class="material-symbols-outlined" style="font-size: 20px;">hourglass_empty</span>
+<span class="font-body-md text-body-md">Generating timeline anchors</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Right: Real-time Entity Stream (Glassmorphism Panel) -->
+<section class="relative h-[500px] w-full rounded-2xl border border-starlight-white/10 bg-surface-container-low/40 backdrop-blur-xl overflow-hidden flex flex-col p-stack-md shadow-2xl">
+<!-- Scanning Line Effect -->
+<div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-primary/50 to-transparent animate-scan z-20"></div>
+<div class="flex items-center justify-between border-b border-starlight-white/5 pb-3 mb-4 z-10">
+<h2 class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                    Discovered Entities
+                </h2>
+<span class="font-label-sm text-label-sm text-surface-variant">Live Stream</span>
+</div>
+<!-- Stream Content -->
+<div class="flex-1 overflow-y-auto flex flex-col gap-3 pr-2 scrollbar-hide relative z-10" id="entity-stream">
+<!-- Javascript will inject items here, but providing initial state -->
+<div class="entity-item flex items-center gap-4 p-3 rounded-lg bg-surface-container/50 border border-starlight-white/5" style="animation-delay: 0.2s;">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" style="font-size: 20px;">person</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-on-surface text-[18px] leading-tight">Elara Vance</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant/60">Character • Mentioned in Ch. 1</span>
+</div>
+</div>
+<div class="entity-item flex items-center gap-4 p-3 rounded-lg bg-surface-container/50 border border-starlight-white/5" style="animation-delay: 0.8s;">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" style="font-size: 20px;">location_on</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-on-surface text-[18px] leading-tight">The Sunken Spire</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant/60">Location • 3 mentions</span>
+</div>
+</div>
+<div class="entity-item flex items-center gap-4 p-3 rounded-lg bg-surface-container/50 border border-starlight-white/5" style="animation-delay: 1.5s;">
+<div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" style="font-size: 20px;">category</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-md text-headline-md text-on-surface text-[18px] leading-tight">Aetheric Core</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant/60">Object • Key Item</span>
+</div>
+</div>
+<!-- Gradient fade at bottom to simulate endless stream -->
+<div class="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-surface-container-low/90 to-transparent pointer-events-none rounded-b-2xl"></div>
+</div>
+</section>
+</main>
+<!-- Inline script for simulated stream effect -->
+<script>
+        // Simple script to periodically add new entities to the stream for demonstration
+        const streamContainer = document.getElementById('entity-stream');
+        const entities = [
+            { name: 'Kaelen', type: 'Character', icon: 'person' },
+            { name: 'Obsidian Wastes', type: 'Location', icon: 'location_on' },
+            { name: 'The Great Schism', type: 'Event', icon: 'event_note' }
+        ];
+        
+        let counter = 0;
+        
+        setInterval(() => {
+            if(counter >= entities.length) return;
+            
+            const entity = entities[counter];
+            const el = document.createElement('div');
+            el.className = 'entity-item flex items-center gap-4 p-3 rounded-lg bg-surface-container/50 border border-starlight-white/5';
+            el.innerHTML = `
+                <div class="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant">
+                    <span class="material-symbols-outlined" style="font-size: 20px;">${entity.icon}</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-headline-md text-headline-md text-on-surface text-[18px] leading-tight">${entity.name}</span>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant/60">${entity.type} • Newly detected</span>
+                </div>
+            `;
+            
+            // Insert before the fade gradient div if it exists, otherwise append
+            const fadeDiv = streamContainer.querySelector('.absolute.bottom-0');
+            if (fadeDiv) {
+                streamContainer.insertBefore(el, fadeDiv);
+            } else {
+                streamContainer.appendChild(el);
+            }
+            
+            // Auto scroll slightly
+            streamContainer.scrollTop = streamContainer.scrollHeight;
+            
+            counter++;
+        }, 2500);
+    </script>
+</body></html>
