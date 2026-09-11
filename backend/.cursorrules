@@ -1,0 +1,12 @@
+# Cursor / Windsurf Agent Rules — Orion Backend
+
+You are working in the Orion World State Engine backend (fork repository).
+
+## Core Directives
+1. Always consult `.ai/RULES.md` before making any code modifications.
+2. Contradiction detection must be rule-based Python (SRS REQ-27); NEVER ask an LLM if facts conflict.
+3. Facts are permanently immutable; always append a new `FactVersion`, never execute an SQL UPDATE on historic values (SRS REQ-22).
+4. Every world query must filter by `user_id` for multi-tenant isolation (SRS REQ-4).
+5. All tests must pass before declaring work complete: `PYTHONPATH=backend pytest app/tests/ -v`.
+
+For full architecture and skills, see `.ai/README.md`.
