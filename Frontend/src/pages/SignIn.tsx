@@ -1,16 +1,45 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/useAuthStore';
 
 export const SignIn: React.FC = () => {
   const navigate = useNavigate();
+  const { login, register, isLoading, error, clearError } = useAuthStore();
+
+  const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [validationError, setValidationError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In our client-side prototype, unlock logs us directly in
-    navigate('/worlds');
+    clearError();
+    setValidationError(null);
+
+    if (isRegister && password.length < 8) {
+      setValidationError('Password must be at least 8 characters long.');
+      return;
+    }
+
+    try {
+      if (isRegister) {
+        await register(email, password);
+      } else {
+        await login(email, password);
+      }
+      navigate('/worlds');
+    } catch (_) {
+      // Error is caught and stored in authStore
+    }
   };
+
+  const toggleMode = () => {
+    setIsRegister(!isRegister);
+    clearError();
+    setValidationError(null);
+  };
+
+  const displayedError = validationError || error;
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center text-on-surface antialiased bg-void-black relative selection:bg-primary/30 select-none">
@@ -42,12 +71,28 @@ export const SignIn: React.FC = () => {
 
           {/* Header */}
           <div className="text-center mb-stack-lg relative z-10">
-            <h1 className="font-display-lg text-display-lg text-starlight-white mb-2 hidden md:block">Enter the Archive</h1>
-            <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-starlight-white mb-2 md:hidden">Enter the Archive</h1>
-            <p className="font-body-md text-body-md text-on-surface-variant/80">Your sanctuary for world-building awaits.</p>
+            <h1 className="font-display-lg text-display-lg text-starlight-white mb-2 hidden md:block">
+              {isRegister ? 'Forge an Entry' : 'Enter the Archive'}
+            </h1>
+            <h1 className="font-headline-lg-mobile text-headline-lg-mobile text-starlight-white mb-2 md:hidden">
+              {isRegister ? 'Forge an Entry' : 'Enter the Archive'}
+            </h1>
+            <p className="font-body-md text-body-md text-on-surface-variant/80">
+              {isRegister 
+                ? 'Create your credentials to begin building worlds.' 
+                : 'Your sanctuary for world-building awaits.'}
+            </p>
           </div>
 
-          {/* Login Form */}
+          {/* Error Notice */}
+          {displayedError && (
+            <div className="mb-6 p-3 rounded bg-red-950/40 border border-red-500/30 text-red-300 text-xs font-body-md flex items-center gap-2">
+              <span className="material-symbols-outlined text-base">error_outline</span>
+              <span>{displayedError}</span>
+            </div>
+          )}
+
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-stack-md relative z-10">
             <div className="flex flex-col">
               <label className="sr-only" htmlFor="email">Email Address</label>
@@ -69,24 +114,35 @@ export const SignIn: React.FC = () => {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
+                placeholder={isRegister ? "Password (min 8 chars)" : "Password"}
                 className="bg-transparent border-0 border-b border-starlight-white/10 rounded-none py-3 px-0 font-body-md text-starlight-white placeholder:text-on-surface-variant/30 w-full focus:outline-none focus:ring-0 focus:border-copper-glow transition-all"
               />
             </div>
 
-            <div className="pt-stack-sm flex items-center justify-between">
-              <button type="button" className="text-on-surface-variant/60 hover:text-starlight-white font-label-sm text-xs uppercase tracking-widest transition-colors">
-                Forgot Password?
-              </button>
-            </div>
+            {!isRegister && (
+              <div className="pt-stack-sm flex items-center justify-between">
+                <button type="button" className="text-on-surface-variant/60 hover:text-starlight-white font-label-sm text-xs uppercase tracking-widest transition-colors">
+                  Forgot Password?
+                </button>
+              </div>
+            )}
 
             <div className="pt-stack-md">
               <button 
                 type="submit" 
-                className="w-full py-3.5 rounded border border-copper-glow text-copper-glow hover:bg-copper-glow hover:text-void-black uppercase font-label-sm text-xs tracking-widest flex items-center justify-center gap-2 transition-all duration-300 shadow-[0_0_15px_rgba(230,162,126,0.1)] hover:shadow-[0_0_25px_rgba(230,162,126,0.25)] font-semibold"
+                disabled={isLoading}
+                className="w-full py-3.5 rounded border border-copper-glow text-copper-glow hover:bg-copper-glow hover:text-void-black uppercase font-label-sm text-xs tracking-widest flex items-center justify-center gap-2 transition-all duration-300 shadow-[0_0_15px_rgba(230,162,126,0.1)] hover:shadow-[0_0_25px_rgba(230,162,126,0.25)] font-semibold disabled:opacity-50"
               >
-                <span>Unlock</span>
-                <span className="material-symbols-outlined text-[18px] font-light">key</span>
+                {isLoading ? (
+                  <span className="material-symbols-outlined text-[18px] animate-spin">refresh</span>
+                ) : (
+                  <>
+                    <span>{isRegister ? 'Register' : 'Unlock'}</span>
+                    <span className="material-symbols-outlined text-[18px] font-light">
+                      {isRegister ? 'person_add' : 'key'}
+                    </span>
+                  </>
+                )}
               </button>
             </div>
           </form>
@@ -104,7 +160,6 @@ export const SignIn: React.FC = () => {
           {/* Social Logins */}
           <div className="mt-stack-md flex justify-center gap-4 relative z-10">
             <button 
-              onClick={() => navigate('/worlds')}
               className="w-12 h-12 rounded-full border border-starlight-white/10 flex items-center justify-center text-on-surface-variant/60 hover:text-starlight-white hover:border-starlight-white/30 transition-all bg-surface-container-lowest/50 hover:bg-surface-container-low" 
               type="button"
               title="Fingerprint Login"
@@ -112,7 +167,6 @@ export const SignIn: React.FC = () => {
               <span className="material-symbols-outlined font-light text-xl">fingerprint</span>
             </button>
             <button 
-              onClick={() => navigate('/worlds')}
               className="w-12 h-12 rounded-full border border-starlight-white/10 flex items-center justify-center text-on-surface-variant/60 hover:text-starlight-white hover:border-starlight-white/30 transition-all bg-surface-container-lowest/50 hover:bg-surface-container-low" 
               type="button"
               title="Public Key Auth"
@@ -121,15 +175,16 @@ export const SignIn: React.FC = () => {
             </button>
           </div>
 
-          {/* Bottom Prompt */}
+          {/* Bottom Prompt Toggle */}
           <div className="mt-stack-lg text-center relative z-10">
             <p className="font-body-md text-sm text-on-surface-variant/70">
-              New to the Archive? 
+              {isRegister ? 'Already have an entry?' : 'New to the Archive?'} 
               <button 
-                onClick={() => navigate('/worlds/new')}
+                type="button"
+                onClick={toggleMode}
                 className="text-copper-glow hover:text-primary-fixed-dim transition-colors ml-1.5 underline underline-offset-4"
               >
-                Forge an entry
+                {isRegister ? 'Sign in' : 'Forge an entry'}
               </button>
             </p>
           </div>

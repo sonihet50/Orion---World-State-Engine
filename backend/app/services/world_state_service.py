@@ -13,7 +13,8 @@ from app.repositories.fact_repo import FactRepository
 from app.repositories.relationship_repo import RelationshipRepository
 from app.repositories.event_repo import EventRepository
 from app.repositories.contradiction_repo import ContradictionRepository
-from app.pipeline.resolution.fact_resolution import resolve_fact_update
+from app.core.constants import FactStatus, RelationshipStatus
+from app.pipeline.resolution.fact_resolution import resolve_fact_update, compare_fact_values
 from app.pipeline.resolution.relationship_resolution import resolve_relationship_update
 from app.services.consistency_service import ConsistencyService
 from app.config.logging import get_logger
@@ -140,6 +141,10 @@ class WorldStateService:
                         entity_name=entity.canonical_name
                     )
 
+                    # If this is a valid chronological evolution (not a contradiction, different value, active version exists):
+                    if active_ver and not contradiction_info and not compare_fact_values(old_val, new_val):
+                        active_ver.status = FactStatus.SUPERSEDED.value
+
                     new_version = self.fact_repo.add_version(
                         fact_id=fact.id,
                         value=new_val,
@@ -200,6 +205,10 @@ class WorldStateService:
                     subj_name=subj_ent.canonical_name,
                     obj_name=obj_ent.canonical_name
                 )
+
+                # If this is a valid evolution (not a contradiction, different type, active version exists):
+                if active_ver and not contradiction_info and old_type.strip().upper() != rel_type.strip().upper():
+                    active_ver.status = RelationshipStatus.SUPERSEDED.value
 
                 new_ver = self.relationship_repo.add_version(
                     relationship_id=rel.id,

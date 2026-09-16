@@ -1,9 +1,10 @@
+from pathlib import Path
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks, status
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db, get_current_user_optional
-from app.models.user import User
+from app.api.deps import get_db, get_current_user_world
+from app.models.world import World
 from app.schemas.manuscript import ManuscriptResponse, ManuscriptDetailResponse
 from app.schemas.chapter import ChapterResponse
 from app.services.manuscript_service import ManuscriptService
@@ -16,26 +17,32 @@ async def upload_manuscript(
     world_id: str,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user_optional)
+    world: World = Depends(get_current_user_world),
+    db: Session = Depends(get_db)
 ):
-    service = ManuscriptService(db)
     content = await file.read()
-    user_id = current_user.id if current_user else None
+    if not content or len(content.strip()) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Uploaded file cannot be empty."
+        )
+
+    safe_filename = Path(file.filename or "manuscript.txt").name
+    service = ManuscriptService(db)
 
     result = service.upload_manuscript(
-        world_id=world_id,
-        filename=file.filename or "manuscript.txt",
+        world_id=world.id,
+        filename=safe_filename,
         file_bytes=content,
         file_type=file.content_type or "text/plain",
-        user_id=user_id
+        user_id=world.user_id
     )
 
     # Queue extraction runs via BackgroundTasks or Celery
     for run_id, ch_text, ch_id, ch_ver_id in result["extraction_runs"]:
         background_tasks.add_task(
             execute_chapter_extraction,
-            world_id=world_id,
+            world_id=world.id,
             job_id=result["job_id"],
             extraction_run_id=run_id,
             chapter_id=ch_id,
@@ -51,9 +58,13 @@ async def upload_manuscript(
     }
 
 @router.get("/{world_id}/manuscripts", response_model=List[ManuscriptResponse])
-def list_manuscripts(world_id: str, db: Session = Depends(get_db)):
+def list_manuscripts(
+    world_id: str,
+    world: World = Depends(get_current_user_world),
+    db: Session = Depends(get_db)
+):
     service = ManuscriptService(db)
-    manuscripts = service.list_manuscripts(world_id)
+    manuscripts = service.list_manuscripts(world.id)
     return [
         ManuscriptResponse(
             id=m.id,
@@ -69,10 +80,15 @@ def list_manuscripts(world_id: str, db: Session = Depends(get_db)):
     ]
 
 @router.get("/{world_id}/manuscripts/{manuscript_id}", response_model=ManuscriptDetailResponse)
-def get_manuscript(world_id: str, manuscript_id: str, db: Session = Depends(get_db)):
+def get_manuscript(
+    world_id: str,
+    manuscript_id: str,
+    world: World = Depends(get_current_user_world),
+    db: Session = Depends(get_db)
+):
     service = ManuscriptService(db)
     manuscript = service.get_manuscript(manuscript_id)
-    if not manuscript or manuscript.world_id != world_id:
+    if not manuscript or manuscript.world_id != world.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Manuscript not found")
 
     chapters = [

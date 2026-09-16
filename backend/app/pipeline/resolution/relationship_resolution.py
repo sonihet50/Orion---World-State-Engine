@@ -38,18 +38,14 @@ def resolve_relationship_update(
             f"Relationship conflict between '{subj_name}' and '{obj_name}': "
             f"previous relationship '{old_type}' is fundamentally incompatible with new '{new_type}'."
         )
-    else:
-        status = RelationshipStatus.SUPERSEDED.value
-        explanation = (
-            f"Relationship evolution between '{subj_name}' and '{obj_name}': "
-            f"type updated from '{old_type}' to '{new_type}'."
-        )
+        contradiction_info = {
+            "contradiction_type": ContradictionType.RELATIONSHIP_RELATIONSHIP.value,
+            "old_type": old_type,
+            "new_type": new_type,
+            "explanation": explanation
+        }
+        return status, contradiction_info
 
-    contradiction_info = {
-        "contradiction_type": ContradictionType.RELATIONSHIP_RELATIONSHIP.value,
-        "old_type": old_type,
-        "new_type": new_type,
-        "explanation": explanation
-    }
+    # Valid chronological evolution: new version is ACTIVE, old will be marked SUPERSEDED
+    return RelationshipStatus.ACTIVE.value, None
 
-    return status, contradiction_info

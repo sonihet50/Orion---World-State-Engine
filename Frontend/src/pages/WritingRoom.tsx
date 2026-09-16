@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { useWorldStore } from '../store/useWorldStore';
+import { apiFetch } from '../api/client';
 
 export const WritingRoom: React.FC = () => {
-  const navigate = useNavigate();
   const { worldId, manuscriptId } = useParams<{ worldId: string; manuscriptId: string }>();
   
   const { 
@@ -17,6 +17,7 @@ export const WritingRoom: React.FC = () => {
     updateChapterContent
   } = useWorldStore();
 
+  const currentWorldId = worldId || 'terra-incognita';
   const currentManuscriptId = manuscriptId || activeManuscriptId || 'ms-1';
   const manuscript = manuscripts.find((m) => m.id === currentManuscriptId);
   const activeChapter = manuscript?.chapters.find((ch) => ch.id === activeChapterId) || manuscript?.chapters[0];
@@ -24,6 +25,25 @@ export const WritingRoom: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editorContent, setEditorContent] = useState('');
   const [isExtracting, setIsExtracting] = useState(false);
+  const [extractionStatus, setExtractionStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (activeChapter) {
+      setEditorContent(activeChapter.content);
+
+      // Try fetching real chapter content from API if not mock
+      if (currentWorldId && !currentWorldId.startsWith('terra-')) {
+        apiFetch<any>(`/worlds/${currentWorldId}/chapters/${activeChapter.id}`)
+          .then(data => {
+            if (data.content) {
+              setEditorContent(data.content);
+              updateChapterContent(currentManuscriptId, activeChapter.id, data.content);
+            }
+          })
+          .catch(() => {});
+      }
+    }
+  }, [activeChapterId, currentWorldId]);
 
   const handleStartEdit = () => {
     if (activeChapter) {
@@ -32,52 +52,87 @@ export const WritingRoom: React.FC = () => {
     }
   };
 
-  const handleSaveEdit = () => {
-    if (activeChapter && manuscript) {
-      updateChapterContent(manuscript.id, activeChapter.id, editorContent);
-      setIsEditing(false);
+  const handleSaveEdit = async () => {
+    if (!activeChapter || !manuscript) return;
+    
+    // Update local state first
+    updateChapterContent(manuscript.id, activeChapter.id, editorContent);
+    setIsEditing(false);
+
+    // Call API to trigger re-extraction if real world
+    if (currentWorldId && !currentWorldId.startsWith('terra-')) {
+      setIsExtracting(true);
+      setExtractionStatus('Re-extracting entities & facts...');
+      try {
+        const res = await apiFetch<any>(`/worlds/${currentWorldId}/chapters/${activeChapter.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            title: activeChapter.title,
+            content: editorContent
+          })
+        });
+
+        if (res.job_id) {
+          // Poll job status
+          const poll = setInterval(async () => {
+            try {
+              const statusData = await apiFetch<any>(`/jobs/${res.job_id}/status`);
+              if (statusData.status === 'done') {
+                clearInterval(poll);
+                setIsExtracting(false);
+                setExtractionStatus('Entity extraction complete! Ledger updated.');
+                setTimeout(() => setExtractionStatus(null), 3000);
+              } else if (statusData.status === 'failed') {
+                clearInterval(poll);
+                setIsExtracting(false);
+                setExtractionStatus('Extraction failed: ' + (statusData.error_message || 'Error'));
+              }
+            } catch (_) {
+              clearInterval(poll);
+              setIsExtracting(false);
+            }
+          }, 1500);
+        } else {
+          setIsExtracting(false);
+          setExtractionStatus(null);
+        }
+      } catch (err: any) {
+        setIsExtracting(false);
+        console.error("Failed to update chapter via API", err);
+      }
     }
   };
 
-  const handleRerunExtraction = () => {
-    setIsExtracting(true);
-    // Simulate AI extraction loading
-    setTimeout(() => {
-      setIsExtracting(false);
-      alert('Extraction complete! Found new references. Ledger sync updated.');
-    }, 1500);
+  const handleRerunExtraction = async () => {
+    if (!activeChapter) return;
+    handleSaveEdit();
   };
 
   // Helper to split text by entity names and inject interactive highlight tags
   const renderTextWithHighlights = (text: string) => {
     if (!text) return null;
-
-    // Filter entities that exist in this world
     const activeEntities = entities;
 
     if (activeEntities.length === 0) return <span>{text}</span>;
 
-    // Sort by length desc to match longer phrases first (e.g. "Elara Vance" before "Elara")
     const sortedEntityNames = [...activeEntities]
       .map(e => e.name)
+      .filter(Boolean)
       .sort((a, b) => b.length - a.length);
 
-    // Escape special regex chars
+    if (sortedEntityNames.length === 0) return <span>{text}</span>;
+
     const escapedNames = sortedEntityNames.map(name => 
       name.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
     );
 
-    // Form regex: word boundaries with options
     const regex = new RegExp(`\\b(${escapedNames.join('|')})\\b`, 'gi');
-
-    // Split text into matches and non-matches
     const parts = text.split(regex);
     if (parts.length <= 1) return <span>{text}</span>;
 
     return (
       <span>
         {parts.map((part, index) => {
-          // Check if this part matches an entity name (case insensitive)
           const matchedEntity = activeEntities.find(
             e => e.name.toLowerCase() === part.toLowerCase()
           );
@@ -86,7 +141,7 @@ export const WritingRoom: React.FC = () => {
             return (
               <span 
                 key={index} 
-                className="entity-highlight text-starlight-white font-medium"
+                className="entity-highlight text-starlight-white font-medium cursor-pointer hover:underline"
                 title={`${matchedEntity.type.toUpperCase()}: Click to view profile`}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -141,13 +196,13 @@ export const WritingRoom: React.FC = () => {
 
           <div className="flex-1 overflow-y-auto p-3 space-y-1">
             {manuscript?.chapters.map((ch) => {
-              const isActive = ch.id === activeChapterId;
+              const isActive = ch.id === (activeChapterId || activeChapter?.id);
               return (
                 <div 
                   key={ch.id}
                   onClick={() => {
                     setActiveChapter(ch.id);
-                    setIsEditing(false); // Stop editing on select change
+                    setIsEditing(false);
                   }}
                   className={`group px-4 py-3 rounded-lg relative overflow-hidden cursor-pointer transition-all duration-300 border ${
                     isActive 
@@ -174,6 +229,16 @@ export const WritingRoom: React.FC = () => {
         {/* Right main panel: Editor Canvas */}
         <section className="flex-1 flex flex-col relative overflow-hidden">
           
+          {/* Extraction Banner if running */}
+          {extractionStatus && (
+            <div className="bg-copper-glow/10 border-b border-copper-glow/30 px-6 py-2 text-xs text-copper-glow flex items-center justify-between z-30">
+              <span className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-base animate-spin">refresh</span>
+                {extractionStatus}
+              </span>
+            </div>
+          )}
+
           {/* Action Bar */}
           <div className="h-16 flex items-center justify-between px-8 border-b border-starlight-white/5 bg-surface-container-lowest/60 backdrop-blur-sm z-20 select-none">
             <div className="flex items-center gap-3">
@@ -196,7 +261,7 @@ export const WritingRoom: React.FC = () => {
               <button 
                 onClick={handleRerunExtraction}
                 disabled={isExtracting}
-                className="px-4 py-1.5 rounded-full text-on-surface-variant/80 font-label-sm text-xs uppercase tracking-wider hover:text-primary hover:bg-primary/5 transition-all flex items-center gap-2"
+                className="px-4 py-1.5 rounded-full text-on-surface-variant/80 font-label-sm text-xs uppercase tracking-wider hover:text-primary hover:bg-primary/5 transition-all flex items-center gap-2 disabled:opacity-50"
               >
                 <span className={`material-symbols-outlined text-[16px] font-light ${isExtracting ? 'animate-spin' : ''}`}>
                   {isExtracting ? 'sync' : 'refresh'}
@@ -208,7 +273,7 @@ export const WritingRoom: React.FC = () => {
             <div className="flex items-center gap-4 text-on-surface-variant/40 font-label-sm text-[10px] uppercase tracking-wider">
               <span>Words: {activeChapter?.wordCount.toLocaleString()}</span>
               <span>•</span>
-              <span>Synced</span>
+              <span>{isExtracting ? 'Re-extracting' : 'Synced'}</span>
             </div>
           </div>
 
@@ -240,7 +305,6 @@ export const WritingRoom: React.FC = () => {
                   className="prose prose-invert prose-lg font-body-lg text-body-lg text-on-surface-variant leading-relaxed space-y-8 select-text"
                   style={{ fontFamily: 'Source Serif 4, serif', fontSize: '18px', lineHeight: '28px' }}
                 >
-                  {/* Paragraph splitter */}
                   {activeChapter?.content.split('\n\n').map((paragraph, index) => (
                     <p key={index}>
                       {renderTextWithHighlights(paragraph)}

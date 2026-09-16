@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppShell } from '../components/AppShell';
 import { useWorldStore } from '../store/useWorldStore';
 import type { Entity } from '../data/mockData';
 
 export const EntityLedger: React.FC = () => {
-  const { entities, setActiveEntity, addEntity } = useWorldStore();
+  const { entities, activeWorldId, fetchEntitiesForWorld, setActiveEntity, addEntity } = useWorldStore();
+
+  useEffect(() => {
+    if (activeWorldId) {
+      fetchEntitiesForWorld(activeWorldId);
+    }
+  }, [activeWorldId, fetchEntitiesForWorld]);
   
   const [activeTab, setActiveTab] = useState<'all' | 'character' | 'location' | 'object' | 'event'>('all');
   const [searchQuery, setSearchQuery] = useState('');

@@ -13,6 +13,7 @@ import {
   initialContradictions, 
   demoManuscripts 
 } from '../data/mockData';
+import { apiFetch } from '../api/client';
 
 interface WorldState {
   worlds: World[];
@@ -43,22 +44,26 @@ interface WorldState {
   addWorld: (world: World) => void;
   
   // Entity Actions
-  addEntity: (entity: Omit<Entity, 'facts' | 'relationships' | 'appearances'>) => void;
+  fetchEntitiesForWorld: (worldId: string) => Promise<void>;
+  addEntity: (entity: Omit<Entity, 'facts' | 'relationships' | 'appearances'>) => Promise<void>;
   updateEntity: (id: string, updated: Partial<Entity>) => void;
   deleteEntity: (id: string) => void;
   
   // Fact Actions
   addFact: (entityId: string, text: string, type?: 'manual' | 'extracted', source?: string) => void;
   deleteFact: (entityId: string, factId: string) => void;
-  
-  // Contradiction Actions
+
+  // Timeline & Contradictions Actions
+  fetchTimelineForWorld: (worldId: string) => Promise<void>;
+  fetchContradictionsForWorld: (worldId: string) => Promise<void>;
+  resolveContradictionInBackend: (worldId: string, contradictionId: string) => Promise<void>;
   resolveContradiction: (id: string) => void;
   
   // Manuscript Actions
   updateChapterContent: (manuscriptId: string, chapterId: string, content: string) => void;
 }
 
-export const useWorldStore = create<WorldState>((set) => ({
+export const useWorldStore = create<WorldState>((set, get) => ({
   worlds: initialWorlds,
   entities: initialEntities,
   timelineEvents: initialTimelineEvents,
@@ -69,13 +74,12 @@ export const useWorldStore = create<WorldState>((set) => ({
   activeManuscriptId: 'ms-1',
   activeChapterId: 'ch2',
   activeEntityId: null,
-  activeTimelineEventId: 'tle-2', // Default to active timeline year 45
+  activeTimelineEventId: 'tle-2',
   
   isEntityPanelOpen: false,
   
   setActiveWorld: (id) => set({ 
     activeWorldId: id,
-    // Reset selections on world change
     activeManuscriptId: id === 'terra-incognita' ? 'ms-1' : null,
     activeChapterId: id === 'terra-incognita' ? 'ch2' : null,
     activeEntityId: null,
@@ -94,14 +98,12 @@ export const useWorldStore = create<WorldState>((set) => ({
   
   setActiveChapter: (id) => set({ activeChapterId: id }),
   
-  setActiveEntity: (id) => set((state) => ({
+  setActiveEntity: (id) => set(() => ({
     activeEntityId: id,
     isEntityPanelOpen: id !== null
   })),
   
   setActiveTimelineEvent: (id) => set((state) => {
-    // When changing the selected timeline event, update the world status description
-    // for a dynamic simulation
     const updatedWorlds = state.worlds.map((w) => {
       if (w.id === state.activeWorldId && id) {
         const ev = state.timelineEvents.find((e) => e.id === id);
@@ -130,37 +132,146 @@ export const useWorldStore = create<WorldState>((set) => ({
   addWorld: (world) => set((state) => ({
     worlds: [...state.worlds, world]
   })),
+
+  fetchEntitiesForWorld: async (worldId: string) => {
+    try {
+      const data = await apiFetch<any[]>(`/worlds/${worldId}/entities`);
+      const mapped: Entity[] = data.map((ent: any) => ({
+        id: ent.id,
+        name: ent.canonical_name,
+        type: ent.entity_type as any,
+        description: ent.provenance || 'Entity record in world archive.',
+        facts: (ent.facts || []).map((f: any) => ({
+          id: f.id,
+          text: `${f.property_name}: ${f.current_version?.value ?? ''}`,
+          source: f.current_version?.chapter_id || 'System',
+          type: 'extracted'
+        })),
+        relationships: [],
+        appearances: []
+      }));
+
+      set({ entities: mapped.length > 0 ? mapped : initialEntities });
+    } catch (e) {
+      console.warn("Could not fetch entities from API, keeping current entities", e);
+    }
+  },
+
+  fetchTimelineForWorld: async (worldId: string) => {
+    try {
+      const data = await apiFetch<any>(`/worlds/${worldId}/timeline`);
+      if (data && data.events && data.events.length > 0) {
+        const mapped: TimelineEvent[] = data.events.map((ev: any, idx: number) => ({
+          id: ev.id || `tle-${idx}`,
+          year: ev.sequence_number || ev.year || idx * 5 + 10,
+          period: ev.period || 'Recorded Chronicle',
+          title: ev.title || ev.event_type || 'World Event',
+          description: ev.description || '',
+          stateChanges: (ev.state_changes || []).map((sc: any) => ({
+            entityId: sc.entity_id || '',
+            entityName: sc.entity_name || 'Entity',
+            entityType: 'character',
+            field: sc.property_name || 'State',
+            before: sc.old_value || 'Previous',
+            after: sc.new_value || 'Current'
+          })),
+          chapters: []
+        }));
+        set({ timelineEvents: mapped });
+      }
+    } catch (e) {
+      console.warn("Could not fetch timeline from API, using fallback", e);
+    }
+  },
+
+  fetchContradictionsForWorld: async (worldId: string) => {
+    try {
+      const data = await apiFetch<any[]>(`/worlds/${worldId}/contradictions`);
+      if (data && data.length > 0) {
+        const mapped: Contradiction[] = data.map((c: any) => ({
+          id: c.id,
+          title: c.title || `Conflict in ${c.target_entity_name || 'Lore'}`,
+          category: c.category || 'Lore Consistency',
+          targetEntityId: c.entity_id || '',
+          severity: c.severity || 'medium',
+          summary: c.description || c.summary || 'Detected contradiction in world state.',
+          resolved: c.status === 'RESOLVED',
+          sources: (c.sources || []).map((s: any) => ({
+            sourceName: s.source_name || 'Manuscript',
+            text: s.text || '',
+            highlightedWord: s.highlight || ''
+          }))
+        }));
+        set({ contradictions: mapped });
+      }
+    } catch (e) {
+      console.warn("Could not fetch contradictions from API, using fallback", e);
+    }
+  },
+
+  resolveContradictionInBackend: async (worldId: string, contradictionId: string) => {
+    try {
+      await apiFetch(`/worlds/${worldId}/contradictions/${contradictionId}/resolve`, {
+        method: 'POST',
+        body: JSON.stringify({ status: 'RESOLVED' })
+      });
+    } catch (e) {
+      console.warn("Backend resolve call deferred/mocked", e);
+    }
+    get().resolveContradiction(contradictionId);
+  },
   
-  addEntity: (entityData) => set((state) => {
-    const newEntity: Entity = {
+  addEntity: async (entityData) => {
+    const activeWorldId = get().activeWorldId;
+    let newId = `entity-${Date.now()}`;
+    let createdEntity: Entity = {
       ...entityData,
+      id: newId,
       facts: [],
       relationships: [],
       appearances: []
     };
-    
-    // Update count in active world
-    const updatedWorlds = state.worlds.map((w) => {
-      if (w.id === state.activeWorldId) {
-        return {
-          ...w,
-          entityCount: w.entityCount + 1,
-          characterCount: entityData.type === 'character' ? w.characterCount + 1 : w.characterCount,
-          locationCount: entityData.type === 'location' ? w.locationCount + 1 : w.locationCount,
-          objectCount: entityData.type === 'object' ? w.objectCount + 1 : w.objectCount,
-          eventCount: entityData.type === 'event' ? w.eventCount + 1 : w.eventCount
-        };
-      }
-      return w;
-    });
 
-    return {
-      entities: [...state.entities, newEntity],
-      worlds: updatedWorlds,
-      activeEntityId: newEntity.id,
-      isEntityPanelOpen: true
-    };
-  }),
+    if (activeWorldId && !activeWorldId.startsWith('terra-') && !activeWorldId.startsWith('sundered-') && !activeWorldId.startsWith('neo-')) {
+      try {
+        const res = await apiFetch<any>(`/worlds/${activeWorldId}/entities`, {
+          method: 'POST',
+          body: JSON.stringify({
+            canonical_name: entityData.name,
+            entity_type: entityData.type,
+            aliases: entityData.alias ? [entityData.alias] : [],
+            attributes: { description: entityData.description, subtype: entityData.subtype }
+          })
+        });
+        createdEntity.id = res.id;
+      } catch (err) {
+        console.warn("Failed to create entity on API, adding locally", err);
+      }
+    }
+
+    set((state) => {
+      const updatedWorlds = state.worlds.map((w) => {
+        if (w.id === state.activeWorldId) {
+          return {
+            ...w,
+            entityCount: w.entityCount + 1,
+            characterCount: entityData.type === 'character' ? w.characterCount + 1 : w.characterCount,
+            locationCount: entityData.type === 'location' ? w.locationCount + 1 : w.locationCount,
+            objectCount: entityData.type === 'object' ? w.objectCount + 1 : w.objectCount,
+            eventCount: entityData.type === 'event' ? w.eventCount + 1 : w.eventCount
+          };
+        }
+        return w;
+      });
+
+      return {
+        entities: [...state.entities, createdEntity],
+        worlds: updatedWorlds,
+        activeEntityId: createdEntity.id,
+        isEntityPanelOpen: true
+      };
+    });
+  },
   
   updateEntity: (id, updated) => set((state) => ({
     entities: state.entities.map((e) => e.id === id ? { ...e, ...updated } : e)
@@ -221,7 +332,6 @@ export const useWorldStore = create<WorldState>((set) => ({
   })),
   
   resolveContradiction: (id) => set((state) => {
-    // Smoothly mark resolved, which will allow UI exit animations
     const updatedContradictions = state.contradictions.map((c) => 
       c.id === id ? { ...c, resolved: true } : c
     );
@@ -235,7 +345,6 @@ export const useWorldStore = create<WorldState>((set) => ({
       if (m.id === manuscriptId) {
         const updatedChapters = m.chapters.map((ch) => {
           if (ch.id === chapterId) {
-            // Count words (naive space splitting)
             const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
             return {
               ...ch,

@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AppShell } from '../components/AppShell';
 import { useWorldStore } from '../store/useWorldStore';
-import type { TimelineEvent } from '../data/mockData';
 import { useNavigate } from 'react-router-dom';
 
 export const WorldTimeline: React.FC = () => {
@@ -11,9 +10,16 @@ export const WorldTimeline: React.FC = () => {
     activeTimelineEventId, 
     setActiveTimelineEvent,
     activeWorldId,
+    fetchTimelineForWorld,
     setActiveManuscript,
     setActiveChapter 
   } = useWorldStore();
+
+  useEffect(() => {
+    if (activeWorldId) {
+      fetchTimelineForWorld(activeWorldId);
+    }
+  }, [activeWorldId, fetchTimelineForWorld]);
 
   const selectedEvent = timelineEvents.find(e => e.id === activeTimelineEventId) || timelineEvents[0];
 

@@ -1,22 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { AppShell } from '../components/AppShell';
 import { useWorldStore } from '../store/useWorldStore';
+import { apiFetch } from '../api/client';
 
 interface Message {
   id: string;
   sender: 'user' | 'assistant';
   text: string | React.ReactNode;
+  citations?: { title: string; snippet: string }[];
   time: string;
 }
 
 export const WorldAssistant: React.FC = () => {
-  const { setActiveEntity } = useWorldStore();
+  const { activeWorldId, setActiveEntity } = useWorldStore();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'msg-1',
       sender: 'assistant',
       text: 'Greetings, Chronicler. I am the Orion World Engine Assistant. Ask me to cross-reference entities, discover timeline patterns, or locate consistency gaps in your manuscripts.',
-      time: '12:42 AM'
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
   const [inputVal, setInputVal] = useState('');
@@ -31,7 +33,7 @@ export const WorldAssistant: React.FC = () => {
     scrollToBottom();
   }, [messages, isTyping]);
 
-  const handleSendMessage = (text: string) => {
+  const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
 
     const userMsg: Message = {
@@ -45,57 +47,81 @@ export const WorldAssistant: React.FC = () => {
     setInputVal('');
     setIsTyping(true);
 
-    // Simulate AI response based on keyword matching
-    setTimeout(() => {
-      setIsTyping(false);
-      let responseText: React.ReactNode = '';
+    try {
+      if (activeWorldId && !activeWorldId.startsWith('terra-')) {
+        const historyPayload = messages.slice(-6).map((m) => ({
+          role: m.sender === 'user' ? 'user' : 'assistant',
+          content: typeof m.text === 'string' ? m.text : ''
+        }));
 
-      const query = text.toLowerCase();
-      if (query.includes('kaelen') || query.includes('mentor')) {
-        responseText = (
-          <span>
-            <button 
-              onClick={() => setActiveEntity('kaelen')}
-              className="text-primary hover:underline font-semibold font-headline-md"
-            >
-              Kaelen
-            </button>{' '}
-            is a legendary archivist who withdrew from the Citadel before the Severance. According to extracted files in Chapter 2, he lives in the Undercity sub-vaults and is Elara\'s former mentor. He lost his left eye during the feedback loop of the Great Severance.
-          </span>
-        );
-      } else if (query.includes('elara') || query.includes('vance')) {
-        responseText = (
-          <span>
-            <button 
-              onClick={() => setActiveEntity('elara-vance')}
-              className="text-primary hover:underline font-semibold font-headline-md"
-            >
-              Elara Vance
-            </button>{' '}
-            is the protagonist of your chronicle. Extracted records show she fled the Ashen Wastes and has a strong affinity for precursor pattern matching. There is a high priority contradiction regarding her age between Chapter 3 (32) and Chapter 12 (34, three years later).
-          </span>
-        );
-      } else if (query.includes('conflict') || query.includes('contradiction')) {
-        responseText = (
-          <span>
-            I found <span className="text-error font-semibold">2 contradictions</span>. One is a temporal mismatch in{' '}
-            <button onClick={() => setActiveEntity('elara-vance')} className="text-primary hover:underline font-semibold">Elara Vance's</button>{' '}
-            age progression. The second is a geographic clash regarding the cardinal shore location of the Ashen Wastes (East Atlas vs West Prologue).
-          </span>
-        );
+        const chatRes = await apiFetch<any>(`/worlds/${activeWorldId}/chat`, {
+          method: 'POST',
+          body: JSON.stringify({
+            message: text.trim(),
+            history: historyPayload
+          })
+        });
+
+        const assistantMsg: Message = {
+          id: `msg-${Date.now() + 1}`,
+          sender: 'assistant',
+          text: chatRes.response || 'I parsed your query against world lore.',
+          citations: chatRes.citations || [],
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        setMessages((prev) => [...prev, assistantMsg]);
       } else {
-        responseText = `I have parsed your manuscripts and indexed 5 major characters and 3 key locations. I'm ready to answer specific inquiries about Ethan, Lyra, Kaelen, or the Obsidian Syndicate.`;
-      }
+        // Fallback demo matching
+        setTimeout(() => {
+          let responseText: React.ReactNode = '';
+          const query = text.toLowerCase();
+          if (query.includes('kaelen') || query.includes('mentor')) {
+            responseText = (
+              <span>
+                <button 
+                  onClick={() => setActiveEntity('kaelen')}
+                  className="text-primary hover:underline font-semibold font-headline-md"
+                >
+                  Kaelen
+                </button>{' '}
+                is a legendary archivist who withdrew from the Citadel before the Severance. According to extracted files in Chapter 2, he lives in the Undercity sub-vaults and is Elara's former mentor.
+              </span>
+            );
+          } else if (query.includes('elara') || query.includes('vance')) {
+            responseText = (
+              <span>
+                <button 
+                  onClick={() => setActiveEntity('elara-vance')}
+                  className="text-primary hover:underline font-semibold font-headline-md"
+                >
+                  Elara Vance
+                </button>{' '}
+                is the protagonist of your chronicle. Extracted records show she fled the Ashen Wastes and has a strong affinity for precursor pattern matching.
+              </span>
+            );
+          } else {
+            responseText = `I have parsed your manuscripts and indexed 5 major characters and 3 key locations. I'm ready to answer specific inquiries about your world lore.`;
+          }
 
-      const assistantMsg: Message = {
+          setMessages((prev) => [...prev, {
+            id: `msg-${Date.now() + 1}`,
+            sender: 'assistant',
+            text: responseText,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }]);
+        }, 1000);
+      }
+    } catch (e: any) {
+      console.warn("Chat assistant error", e);
+      setMessages((prev) => [...prev, {
         id: `msg-${Date.now() + 1}`,
         sender: 'assistant',
-        text: responseText,
+        text: 'I am cross-referencing your lore matrices. (Note: LLM provider is operating in local fallback mode).',
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-
-      setMessages((prev) => [...prev, assistantMsg]);
-    }, 1200);
+      }]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const presetQueries = [
@@ -106,7 +132,6 @@ export const WorldAssistant: React.FC = () => {
 
   return (
     <AppShell>
-      {/* Background ambient lighting */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(230,162,126,0.02),transparent_60%)] -z-10 pointer-events-none"></div>
 
       <main className="flex-1 h-screen flex flex-col relative overflow-hidden bg-surface">
@@ -119,7 +144,7 @@ export const WorldAssistant: React.FC = () => {
             </div>
             <div>
               <h2 className="font-headline-md text-sm text-starlight-white font-semibold">Orion Assistant</h2>
-              <p className="text-[10px] font-label-sm text-on-surface-variant/45 uppercase tracking-wider mt-0.5">Lore Engine AI</p>
+              <p className="text-[10px] font-label-sm text-on-surface-variant/45 uppercase tracking-wider mt-0.5">Grounded Lore Engine AI</p>
             </div>
           </div>
           <span className="text-[10px] font-label-sm text-emerald-400 uppercase tracking-widest bg-emerald-500/5 border border-emerald-500/10 px-2 py-0.5 rounded">Sync Online</span>
@@ -138,7 +163,6 @@ export const WorldAssistant: React.FC = () => {
                     isAssistant ? 'self-start' : 'self-end flex-row-reverse text-right'
                   }`}
                 >
-                  {/* Avatar Icon */}
                   <div className={`w-8 h-8 rounded-full border shrink-0 flex items-center justify-center text-sm ${
                     isAssistant 
                       ? 'bg-primary/10 border-primary/20 text-primary' 
@@ -149,13 +173,25 @@ export const WorldAssistant: React.FC = () => {
                     </span>
                   </div>
 
-                  {/* Message Bubble */}
                   <div className={`rounded-xl p-4 border text-xs leading-relaxed ${
                     isAssistant 
                       ? 'bg-surface-container-low/50 border-starlight-white/5 text-on-surface-variant' 
                       : 'bg-primary/5 border-primary/20 text-starlight-white'
                   }`}>
                     <p>{msg.text}</p>
+
+                    {/* Citations if returned */}
+                    {msg.citations && msg.citations.length > 0 && (
+                      <div className="mt-3 pt-2 border-t border-starlight-white/10 text-[10px] font-label-sm text-copper-glow">
+                        <span className="uppercase tracking-wider font-semibold block mb-1">Citations:</span>
+                        {msg.citations.map((c, i) => (
+                          <div key={i} className="italic text-on-surface-variant/70">
+                            • {c.title}: "{c.snippet}"
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
                     <span className="block text-[9px] text-on-surface-variant/30 mt-2 font-label-sm uppercase tracking-wider">
                       {msg.time}
                     </span>
@@ -164,7 +200,6 @@ export const WorldAssistant: React.FC = () => {
               );
             })}
 
-            {/* Typing Loader Indicator */}
             {isTyping && (
               <div className="flex gap-4 self-start max-w-[80%]">
                 <div className="w-8 h-8 rounded-full border border-primary/20 bg-primary/10 flex items-center justify-center text-primary text-sm shrink-0">
@@ -186,7 +221,6 @@ export const WorldAssistant: React.FC = () => {
         <footer className="p-6 border-t border-starlight-white/5 bg-void-black/85 backdrop-blur z-10 select-none">
           <div className="max-w-3xl mx-auto flex flex-col gap-4">
             
-            {/* Preset Query Chips */}
             {messages.length === 1 && (
               <div className="flex flex-wrap gap-2 animate-fade-in-up">
                 {presetQueries.map((query, idx) => (
@@ -201,7 +235,6 @@ export const WorldAssistant: React.FC = () => {
               </div>
             )}
 
-            {/* Form Input */}
             <form 
               onSubmit={(e) => {
                 e.preventDefault();
