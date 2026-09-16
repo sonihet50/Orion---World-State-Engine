@@ -1,64 +1,59 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-
-interface DiscoveredEntity {
-  name: string;
-  type: string;
-  icon: string;
-  detail: string;
-  delay: number;
-}
+import { apiFetch } from '../api/client';
 
 export const ProcessingWorld: React.FC = () => {
   const navigate = useNavigate();
   const { worldId } = useParams<{ worldId: string }>();
   const location = useLocation();
   const [progress, setProgress] = useState(0);
+  const [statusText, setStatusText] = useState('Initializing extraction pipeline...');
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const jobId = params.get('jobId');
 
     if (!jobId) {
-        // Fallback to mock progress if no job ID (e.g. from scratch creation)
-        const progressInterval = setInterval(() => {
-          setProgress((prev) => (prev >= 100 ? 100 : prev + 1));
-        }, 80);
-        return () => clearInterval(progressInterval);
+      // Fallback to mock progress if no job ID (e.g. from scratch creation)
+      const progressInterval = setInterval(() => {
+        setProgress((prev) => (prev >= 100 ? 100 : prev + 2));
+      }, 50);
+      return () => clearInterval(progressInterval);
     }
 
-    // Poll the API
+    // Poll the backend job status endpoint
     const pollInterval = setInterval(async () => {
-        try {
-            const res = await fetch(`http://localhost:8000/jobs/${jobId}`);
-            if (res.ok) {
-                const data = await res.json();
-                if (data.progress_total > 0) {
-                    const currentProgress = Math.floor((data.progress_current / data.progress_total) * 100);
-                    setProgress(currentProgress);
-                }
-                if (data.status === 'done') {
-                    setProgress(100);
-                    clearInterval(pollInterval);
-                } else if (data.status === 'failed') {
-                    clearInterval(pollInterval);
-                    console.error("Job failed:", data.error_message);
-                    alert(`Job failed: ${data.error_message}`);
-                }
-            }
-        } catch (e) {
-            console.error("Polling error", e);
+      try {
+        const data = await apiFetch<any>(`/jobs/${jobId}/status`);
+        if (data.progress_total > 0) {
+          const currentProgress = Math.min(100, Math.floor((data.progress_current / data.progress_total) * 100));
+          setProgress(currentProgress);
         }
-    }, 2000);
+        
+        if (data.status === 'processing') {
+          setStatusText(`Extracting entities & lore (${data.progress_current} / ${data.progress_total})...`);
+        } else if (data.status === 'done') {
+          setProgress(100);
+          setStatusText('Extraction complete! Finalizing world ledger...');
+          clearInterval(pollInterval);
+        } else if (data.status === 'failed') {
+          clearInterval(pollInterval);
+          console.error("Job failed:", data.error_message);
+          setStatusText(`Extraction failed: ${data.error_message || 'Unknown error'}`);
+        }
+      } catch (e: any) {
+        console.error("Polling error", e);
+      }
+    }, 1500);
 
+    return () => clearInterval(pollInterval);
   }, [location.search]);
 
   useEffect(() => {
     if (progress === 100) {
-      // Complete! Wait a moment and navigate to world home
       const timeout = setTimeout(() => {
-        navigate(`/worlds/${worldId || 'terra-incognita'}`);
-      }, 1000);
+        navigate(`/worlds/${worldId || ''}`);
+      }, 1200);
       return () => clearTimeout(timeout);
     }
   }, [progress, navigate, worldId]);
@@ -98,7 +93,9 @@ export const ProcessingWorld: React.FC = () => {
           <div className="flex flex-col gap-stack-md mt-6">
             <div className="flex flex-col gap-2">
               <div className="flex justify-between items-end">
-                <span className="font-label-sm text-label-sm text-primary uppercase tracking-widest text-[10px]">Extraction Progress</span>
+                <span className="font-label-sm text-label-sm text-primary uppercase tracking-widest text-[10px]">
+                  {statusText}
+                </span>
                 <span className="font-label-sm text-label-sm text-copper-glow font-semibold">{progress}%</span>
               </div>
               <div className="h-1.5 w-full bg-surface-container-high rounded-full overflow-hidden relative">

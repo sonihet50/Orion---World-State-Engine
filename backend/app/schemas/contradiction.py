@@ -24,3 +24,4 @@ class ContradictionResolveRequest(BaseModel):
     status: str = "RESOLVED"
     resolution_notes: Optional[str] = None
     preferred_fact_version_id: Optional[str] = None
+    preferred_relationship_version_id: Optional[str] = None

@@ -95,12 +95,18 @@ class ConsistencyService:
         self,
         contradiction_id: str,
         status: str = "RESOLVED",
-        preferred_fact_version_id: Optional[str] = None
+        preferred_fact_version_id: Optional[str] = None,
+        preferred_relationship_version_id: Optional[str] = None
     ) -> Optional[Contradiction]:
-        con = self.contradiction_repo.resolve(contradiction_id, status=status)
-        if con and preferred_fact_version_id and con.old_fact_version_id and con.new_fact_version_id:
+        con = self.contradiction_repo.get(contradiction_id)
+        if not con:
+            return None
+
+        # Fact contradiction resolution
+        if preferred_fact_version_id and con.old_fact_version_id and con.new_fact_version_id:
+            if preferred_fact_version_id not in (con.old_fact_version_id, con.new_fact_version_id):
+                raise ValueError("preferred_fact_version_id must match one of the contradiction's fact versions.")
             from app.models.fact import FactVersion
-            # Activate preferred version, mark other as superseded
             chosen = self.db.query(FactVersion).filter_by(id=preferred_fact_version_id).first()
             other_id = con.old_fact_version_id if preferred_fact_version_id == con.new_fact_version_id else con.new_fact_version_id
             other = self.db.query(FactVersion).filter_by(id=other_id).first()
@@ -108,7 +114,23 @@ class ConsistencyService:
                 chosen.status = "ACTIVE"
             if other:
                 other.status = "SUPERSEDED"
-            self.db.commit()
+
+        # Relationship contradiction resolution
+        if preferred_relationship_version_id and con.old_relationship_version_id and con.new_relationship_version_id:
+            if preferred_relationship_version_id not in (con.old_relationship_version_id, con.new_relationship_version_id):
+                raise ValueError("preferred_relationship_version_id must match one of the contradiction's relationship versions.")
+            from app.models.relationship import RelationshipVersion
+            chosen = self.db.query(RelationshipVersion).filter_by(id=preferred_relationship_version_id).first()
+            other_id = con.old_relationship_version_id if preferred_relationship_version_id == con.new_relationship_version_id else con.new_relationship_version_id
+            other = self.db.query(RelationshipVersion).filter_by(id=other_id).first()
+            if chosen:
+                chosen.status = "ACTIVE"
+            if other:
+                other.status = "SUPERSEDED"
+
+        con.status = status
+        self.db.commit()
+        self.db.refresh(con)
         return con
 
     def list_contradictions(self, world_id: str, status: Optional[str] = None) -> List[Contradiction]:

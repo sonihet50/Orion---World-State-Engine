@@ -127,6 +127,10 @@ backend/
 │   ├── Dockerfile
 │   └── docker-compose.yml
 │
+├── docs/                     # Project Specifications & API Contracts
+│   ├── srs.md                # Software Requirements Specification (v1.0)
+│   └── api.md                # Complete REST API Reference Documentation
+│
 ├── .env                      # Environment configuration template
 ├── requirements.txt          # Python dependencies
 └── README.md                 # System documentation

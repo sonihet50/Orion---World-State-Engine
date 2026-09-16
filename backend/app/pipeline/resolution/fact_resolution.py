@@ -37,19 +37,15 @@ def resolve_fact_update(
             f"Direct contradiction for '{entity_name}': property '{property_name}' "
             f"was previously stated as '{old_value}' but is now stated as '{new_value}'."
         )
-    else:
-        status = FactStatus.SUPERSEDED.value
-        explanation = (
-            f"State transition or conflict for '{entity_name}': property '{property_name}' "
-            f"updated from '{old_value}' to '{new_value}'."
-        )
+        contradiction_info = {
+            "contradiction_type": ContradictionType.FACT_FACT.value,
+            "property_name": property_name,
+            "old_value": old_value,
+            "new_value": new_value,
+            "explanation": explanation
+        }
+        return status, contradiction_info
 
-    contradiction_info = {
-        "contradiction_type": ContradictionType.FACT_FACT.value,
-        "property_name": property_name,
-        "old_value": old_value,
-        "new_value": new_value,
-        "explanation": explanation
-    }
+    # Valid chronological evolution / update: new version will become ACTIVE, old will be SUPERSEDED
+    return FactStatus.ACTIVE.value, None
 
-    return status, contradiction_info

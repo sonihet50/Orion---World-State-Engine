@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
@@ -7,6 +7,9 @@ from app.utils.hashing import generate_uuid
 
 class World(Base):
     __tablename__ = "worlds"
+    __table_args__ = (
+        UniqueConstraint("user_id", "name", name="uq_user_world_name"),
+    )
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
     user_id = Column(String(36), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)

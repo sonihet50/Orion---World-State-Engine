@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { AppShell } from '../components/AppShell';
 import { useWorldStore } from '../store/useWorldStore';
 import { forceSimulation, forceManyBody, forceLink, forceCenter, forceCollide } from 'd3-force';
+import { apiFetch } from '../api/client';
 
 interface Node {
   id: string;
@@ -40,28 +41,28 @@ export const WorldGraph: React.FC = () => {
 
   useEffect(() => {
     const fetchGraph = async () => {
+      if (!worldId) return;
       try {
-        const res = await fetch(`http://localhost:8000/worlds/${worldId}/entities`);
-        if (res.ok) {
-          const data = await res.json();
-          const fetchedNodes = data.entities.map((ent: any) => {
-            const t = (ent.entity_type || 'character').toLowerCase();
+        const data = await apiFetch<any>(`/worlds/${worldId}/graph`);
+        if (data && data.nodes && data.nodes.length > 0) {
+          const fetchedNodes = data.nodes.map((ent: any) => {
+            const t = (ent.type || ent.entity_type || 'character').toLowerCase();
             return {
               id: ent.id,
-              name: ent.canonical_name,
-              type: ['character', 'location', 'object', 'event'].includes(t) ? t : 'character',
-              icon: t === 'character' ? 'person' : t === 'location' ? 'location_on' : t === 'object' ? 'category' : 'event_note',
-              subtype: ent.entity_type || 'Unknown',
-              x: 0,
-              y: 0
+              name: ent.label || ent.canonical_name || 'Entity',
+              type: t as Node['type'],
+              icon: t === 'character' ? 'group' : t === 'location' ? 'location_on' : t === 'object' ? 'category' : 'event_note',
+              subtype: t,
+              x: Math.random() * 800 + 100,
+              y: Math.random() * 500 + 100
             };
           });
-          const fetchedEdges = data.relationships.map((rel: any) => ({
-            from: rel.source_entity_id,
-            to: rel.target_entity_id,
-            source: rel.source_entity_id,
-            target: rel.target_entity_id,
-            color: '#c2c6d6'
+
+          const fetchedEdges = (data.edges || []).map((rel: any) => ({
+            from: rel.source || rel.from,
+            to: rel.target || rel.to,
+            color: rel.type === 'ENEMY_OF' ? '#ffb4ab' : '#E6A27E',
+            dashed: rel.type === 'ENEMY_OF'
           }));
 
           const simulation = forceSimulation(fetchedNodes)
@@ -134,15 +135,7 @@ export const WorldGraph: React.FC = () => {
     }
   };
 
-  const getNodeBadgeColor = (type: Node['type']) => {
-    switch (type) {
-      case 'character': return 'bg-[#E6A27E]';
-      case 'location': return 'bg-[#c2c6d6]';
-      case 'object': return 'bg-[#c8c6c5]';
-      case 'event': return 'bg-[#ffb4ab]';
-      default: return 'bg-outline';
-    }
-  };
+
 
   // Check if edge is active (connected to hovered node)
   const isEdgeActive = (edge: Edge) => {

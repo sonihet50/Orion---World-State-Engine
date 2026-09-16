@@ -1,10 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppShell } from '../components/AppShell';
 import { useWorldStore } from '../store/useWorldStore';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export const Contradictions: React.FC = () => {
-  const { contradictions, resolveContradiction, setActiveEntity, entities } = useWorldStore();
+  const { contradictions, activeWorldId, fetchContradictionsForWorld, resolveContradictionInBackend, setActiveEntity } = useWorldStore();
+
+  useEffect(() => {
+    if (activeWorldId) {
+      fetchContradictionsForWorld(activeWorldId);
+    }
+  }, [activeWorldId, fetchContradictionsForWorld]);
   
   // Track which contradiction is actively resolving (to show resolution choices)
   const [resolvingId, setResolvingId] = useState<string | null>(null);
@@ -23,7 +29,9 @@ export const Contradictions: React.FC = () => {
     
     // Briefly show selection, then animate out
     setTimeout(() => {
-      resolveContradiction(id);
+      if (activeWorldId) {
+        resolveContradictionInBackend(activeWorldId, id);
+      }
       setResolvingId(null);
       setResolutionChoice(null);
     }, 1000);
@@ -196,7 +204,7 @@ export const Contradictions: React.FC = () => {
                         </p>
                         <div className="flex gap-2.5">
                           <button 
-                            onClick={() => resolveContradiction(c.id)}
+                            onClick={() => activeWorldId && resolveContradictionInBackend(activeWorldId, c.id)}
                             className="font-label-sm text-xs text-on-surface-variant hover:text-white px-3 py-1.5 transition-colors uppercase tracking-wider"
                           >
                             Ignore

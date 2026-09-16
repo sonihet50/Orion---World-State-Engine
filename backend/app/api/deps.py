@@ -6,6 +6,8 @@ from sqlalchemy.orm import Session
 from app.core.database import SessionLocal
 from app.core.security import decode_access_token
 from app.models.user import User
+from app.models.world import World
+from app.models.processing_job import ProcessingJob
 from app.repositories.user_repo import UserRepository
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
@@ -57,3 +59,32 @@ def get_current_user(
     if not user:
         raise credentials_exception
     return user
+
+def get_current_user_world(
+    world_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+) -> World:
+    """Verifies that the requested world exists and belongs to the authenticated user."""
+    world = db.query(World).filter(World.id == world_id).first()
+    if not world or world.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="World not found"
+        )
+    return world
+
+def get_current_user_job(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+) -> ProcessingJob:
+    """Verifies that the requested processing job exists and belongs to the authenticated user's world."""
+    job = db.query(ProcessingJob).filter(ProcessingJob.id == job_id).first()
+    if not job or (job.world and job.world.user_id != current_user.id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Job not found"
+        )
+    return job
+

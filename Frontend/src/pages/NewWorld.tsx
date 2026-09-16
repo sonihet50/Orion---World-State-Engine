@@ -1,68 +1,143 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWorldStore } from '../store/useWorldStore';
+import { apiFetch } from '../api/client';
 import type { World } from '../data/mockData';
 
 export const NewWorld: React.FC = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { addWorld, setActiveWorld } = useWorldStore();
+  const [worldName, setWorldName] = useState('');
+  const [description, setDescription] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleStartImport = async (mode: string) => {
-    let newId = `world-${Date.now()}`;
-    
-    const name = mode === 'scratch' ? 'New Chronicle' : 'Extracted World';
-    const description = mode === 'scratch' 
-        ? 'A blank canvas initialized in the archives. Add characters, locations, and facts manually.'
-        : 'A world extracted from uploaded manuscript sources. Entities and timeline markers discovered by AI analysis.';
+  const processFileUpload = async (file: File) => {
+    setLoading(true);
+    setError(null);
+
+    const filenameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+    const nameToUse = worldName.trim() || filenameWithoutExt || 'Extracted World';
+    const descToUse = description.trim() || `World extracted from uploaded manuscript ${file.name}.`;
 
     try {
-      const response = await fetch('http://localhost:8000/worlds', { 
+      // Step 1: Create world
+      const worldData = await apiFetch<any>('/worlds', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name, description })
+        body: JSON.stringify({ name: nameToUse, description: descToUse })
       });
-      if (response.ok) {
-        const data = await response.json();
-        newId = data.id;
-      }
-    } catch (e) {
-      console.error("Failed to create world via API", e);
-    }
-    
-    // Create new world object in state
-    const newWorld: World = {
-      id: newId,
-      name: mode === 'scratch' ? 'New Chronicle' : 'Extracted World',
-      description: mode === 'scratch' 
-        ? 'A blank canvas initialized in the archives. Add characters, locations, and facts manually.'
-        : 'A world extracted from uploaded manuscript sources. Entities and timeline markers discovered by AI analysis.',
-      status: 'active',
-      coverImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAuBUQknn_uISnwdR-0unHTT5VRn-yce6HhfPUnOIG_Ony7WbXISoUWuWh5wyVeqSOLTYFIiAP74lHr0RUBulB0dCbAuA9H3-tAAOjJyR81Mq8O6R3RvmKn59tBm-9l7GCG4SfTilfGXtrFZCYZB8exnTe1_mAXZFow2X7Xc6mLFUmxt3pgQ06mqEa2md5K7Pjv_DD0xt27x6wjj1JqQ9A-zVBTwdoBwbbKRPLuYWojrHy2j6YDRs9kHg',
-      entryCount: mode === 'scratch' ? 0 : 5,
-      entityCount: mode === 'scratch' ? 0 : 12,
-      manuscriptCount: mode === 'scratch' ? 0 : 1,
-      characterCount: 0,
-      locationCount: 0,
-      objectCount: 0,
-      eventCount: 0
-    };
 
-    addWorld(newWorld);
-    setActiveWorld(newId);
-    
-    // Direct to processing page or manuscripts depending on flow
-    if (mode === 'manuscript') {
-        navigate(`/worlds/${newId}/manuscripts`);
-    } else {
-        navigate(`/worlds/${newId}/processing`);
+      const newWorld: World = {
+        id: worldData.id,
+        name: worldData.name,
+        description: worldData.description || '',
+        status: 'active',
+        coverImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAuBUQknn_uISnwdR-0unHTT5VRn-yce6HhfPUnOIG_Ony7WbXISoUWuWh5wyVeqSOLTYFIiAP74lHr0RUBulB0dCbAuA9H3-tAAOjJyR81Mq8O6R3RvmKn59tBm-9l7GCG4SfTilfGXtrFZCYZB8exnTe1_mAXZFow2X7Xc6mLFUmxt3pgQ06mqEa2md5K7Pjv_DD0xt27x6wjj1JqQ9A-zVBTwdoBwbbKRPLuYWojrHy2j6YDRs9kHg',
+        entryCount: 0,
+        entityCount: 0,
+        manuscriptCount: 1,
+        characterCount: 0,
+        locationCount: 0,
+        objectCount: 0,
+        eventCount: 0
+      };
+
+      addWorld(newWorld);
+      setActiveWorld(worldData.id);
+
+      // Step 2: Upload manuscript file
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const manuscriptRes = await apiFetch<any>(`/worlds/${worldData.id}/manuscripts`, {
+        method: 'POST',
+        body: formData
+      });
+
+      // Step 3: Redirect to processing view with job_id
+      if (manuscriptRes.job_id) {
+        navigate(`/worlds/${worldData.id}/processing?jobId=${manuscriptRes.job_id}`);
+      } else {
+        navigate(`/worlds/${worldData.id}`);
+      }
+    } catch (e: any) {
+      console.error("Failed to upload manuscript via API", e);
+      setError(e.message || "Failed to upload manuscript file");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      processFileUpload(e.target.files[0]);
+    }
+  };
+
+  const handleStartImport = async (mode: string) => {
+    if (mode === 'manuscript' || mode === 'notes') {
+      fileInputRef.current?.click();
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const nameToUse = worldName.trim() || 'New Chronicle';
+    const descToUse = description.trim() || 'A blank canvas initialized in the archives. Add characters, locations, and facts manually.';
+
+    try {
+      const data = await apiFetch<any>('/worlds', {
+        method: 'POST',
+        body: JSON.stringify({ name: nameToUse, description: descToUse })
+      });
+
+      const newWorld: World = {
+        id: data.id,
+        name: data.name,
+        description: data.description || '',
+        status: 'active',
+        coverImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAuBUQknn_uISnwdR-0unHTT5VRn-yce6HhfPUnOIG_Ony7WbXISoUWuWh5wyVeqSOLTYFIiAP74lHr0RUBulB0dCbAuA9H3-tAAOjJyR81Mq8O6R3RvmKn59tBm-9l7GCG4SfTilfGXtrFZCYZB8exnTe1_mAXZFow2X7Xc6mLFUmxt3pgQ06mqEa2md5K7Pjv_DD0xt27x6wjj1JqQ9A-zVBTwdoBwbbKRPLuYWojrHy2j6YDRs9kHg',
+        entryCount: 0,
+        entityCount: 0,
+        manuscriptCount: 0,
+        characterCount: 0,
+        locationCount: 0,
+        objectCount: 0,
+        eventCount: 0
+      };
+
+      addWorld(newWorld);
+      setActiveWorld(data.id);
+      navigate(`/worlds/${data.id}`);
+    } catch (e: any) {
+      console.error("Failed to create world via API", e);
+      setError(e.message || "Failed to create world");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processFileUpload(e.dataTransfer.files[0]);
     }
   };
 
   return (
     <div className="bg-void-black text-on-background min-h-screen w-full font-body-md selection:bg-primary/30 selection:text-primary-fixed flex flex-col items-center justify-center overflow-x-hidden select-none relative">
       
+      {/* Hidden File Input */}
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileChange} 
+        accept=".txt,.pdf,.docx,.epub" 
+        className="hidden" 
+      />
+
       {/* Background Noise Texture */}
       <div className="fixed inset-0 pointer-events-none opacity-5 mix-blend-overlay z-0" style={{ backgroundImage: "url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E')" }}></div>
       
@@ -76,13 +151,44 @@ export const NewWorld: React.FC = () => {
           </p>
         </header>
 
+        {error && (
+          <div className="mb-6 w-full max-w-md p-3 rounded bg-red-950/40 border border-red-500/30 text-red-300 text-xs text-center">
+            {error}
+          </div>
+        )}
+
+        {/* Custom Name / Details Form */}
+        <div className="w-full max-w-lg mb-8 space-y-4">
+          <div>
+            <label className="block text-xs font-label-sm text-on-surface-variant/70 mb-1 uppercase tracking-wider">World Name</label>
+            <input 
+              type="text" 
+              value={worldName}
+              onChange={(e) => setWorldName(e.target.value)}
+              placeholder="e.g. Chronicle of Aethelgard"
+              className="w-full bg-surface-container-low border border-starlight-white/10 rounded p-3 text-starlight-white text-sm focus:outline-none focus:border-copper-glow"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-label-sm text-on-surface-variant/70 mb-1 uppercase tracking-wider">Description (Optional)</label>
+            <textarea 
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Brief summary of the world's lore..."
+              rows={2}
+              className="w-full bg-surface-container-low border border-starlight-white/10 rounded p-3 text-starlight-white text-sm focus:outline-none focus:border-copper-glow resize-none"
+            />
+          </div>
+        </div>
+
         {/* Options Grid */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
           
           {/* Option 1: Import Manuscript */}
           <button 
+            disabled={loading}
             onClick={() => handleStartImport('manuscript')}
-            className="group flex flex-col items-center text-center p-8 rounded-xl bg-surface-container-low border border-outline-variant/30 hover:border-primary/50 transition-all duration-300 relative overflow-hidden focus:outline-none focus:ring-1 focus:ring-primary"
+            className="group flex flex-col items-center text-center p-8 rounded-xl bg-surface-container-low border border-outline-variant/30 hover:border-primary/50 transition-all duration-300 relative overflow-hidden focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
           >
             <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
             <div className="w-16 h-16 rounded-full bg-surface-container-high flex items-center justify-center mb-6 group-hover:bg-primary/10 transition-colors duration-300 border border-outline-variant/50 group-hover:border-primary/30">
@@ -96,8 +202,9 @@ export const NewWorld: React.FC = () => {
 
           {/* Option 2: Import World Material */}
           <button 
+            disabled={loading}
             onClick={() => handleStartImport('notes')}
-            className="group flex flex-col items-center text-center p-8 rounded-xl bg-surface-container-low border border-primary/30 shadow-[0_0_40px_rgba(254,182,141,0.03)] hover:border-primary transition-all duration-300 relative overflow-hidden md:-translate-y-4 focus:outline-none focus:ring-1 focus:ring-primary"
+            className="group flex flex-col items-center text-center p-8 rounded-xl bg-surface-container-low border border-primary/30 shadow-[0_0_40px_rgba(254,182,141,0.03)] hover:border-primary transition-all duration-300 relative overflow-hidden md:-translate-y-4 focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
           >
             <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent opacity-100 transition-opacity duration-500"></div>
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/3 h-px bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
@@ -118,8 +225,9 @@ export const NewWorld: React.FC = () => {
 
           {/* Option 3: Scratch */}
           <button 
+            disabled={loading}
             onClick={() => handleStartImport('scratch')}
-            className="group flex flex-col items-center text-center p-8 rounded-xl bg-surface-container-low border border-outline-variant/30 hover:border-outline transition-all duration-300 relative overflow-hidden focus:outline-none focus:ring-1 focus:ring-primary"
+            className="group flex flex-col items-center text-center p-8 rounded-xl bg-surface-container-low border border-outline-variant/30 hover:border-outline transition-all duration-300 relative overflow-hidden focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
           >
             <div className="w-16 h-16 rounded-full bg-surface-container-high flex items-center justify-center mb-6 group-hover:bg-surface-container-highest transition-colors duration-300 border border-outline-variant/50">
               <span className="material-symbols-outlined text-3xl text-on-surface-variant font-light">add</span>
@@ -134,13 +242,19 @@ export const NewWorld: React.FC = () => {
 
         {/* Drag and Drop Area */}
         <div 
-          onClick={() => handleStartImport('manuscript')}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleDrop}
+          onClick={() => !loading && fileInputRef.current?.click()}
           className="w-full mt-12 p-12 border border-dashed border-outline-variant/50 rounded-xl bg-surface-container-lowest/50 flex flex-col items-center justify-center transition-colors hover:bg-surface-container-low/50 hover:border-primary/50 group cursor-pointer relative overflow-hidden"
         >
           <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
           <span className="material-symbols-outlined text-4xl text-outline mb-4 group-hover:text-primary transition-colors font-light">upload_file</span>
-          <p className="font-body-lg text-body-lg text-starlight-white mb-1">Drag and drop your files here</p>
-          <p className="font-body-md text-body-md text-on-surface-variant/60 text-sm">or click to browse from your computer</p>
+          <p className="font-body-lg text-body-lg text-starlight-white mb-1">
+            {loading ? 'Uploading & initializing extraction...' : 'Drag and drop your manuscript here'}
+          </p>
+          <p className="font-body-md text-body-md text-on-surface-variant/60 text-sm">
+            or click to browse from your computer (.txt, .pdf, .docx)
+          </p>
         </div>
 
         {/* Cancel Button */}

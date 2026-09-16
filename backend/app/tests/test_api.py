@@ -5,8 +5,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.main import app
-from app.api.deps import get_db
+from app.api.deps import get_db, get_current_user
 from app.core.database import Base
+from app.models.user import User
 
 # Setup in-memory test database with StaticPool so all connections share the same memory DB
 test_engine = create_engine(
@@ -17,6 +18,12 @@ test_engine = create_engine(
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 Base.metadata.create_all(bind=test_engine)
 
+init_db = TestingSessionLocal()
+test_user = User(id="test-user-uuid-1", email="testauthor@example.com", password_hash="dummy")
+init_db.add(test_user)
+init_db.commit()
+init_db.close()
+
 def override_get_db():
     db = TestingSessionLocal()
     try:
@@ -24,7 +31,19 @@ def override_get_db():
     finally:
         db.close()
 
-app.dependency_overrides[get_db] = override_get_db
+from fastapi import Depends
+from sqlalchemy.orm import Session
+
+def override_get_current_user(db: Session = Depends(override_get_db)):
+    return db.query(User).filter(User.id == "test-user-uuid-1").first()
+
+@pytest.fixture(autouse=True)
+def setup_api_test_overrides():
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = override_get_current_user
+    yield
+    app.dependency_overrides.clear()
+
 client = TestClient(app)
 
 def test_health():

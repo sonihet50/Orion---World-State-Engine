@@ -2,7 +2,8 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_db
+from app.api.deps import get_db, get_current_user_world
+from app.models.world import World
 from app.schemas.entity import (
     EntityCreate, EntityUpdate, EntityResponse, EntityDetailResponse,
     FactCreate, FactResponse, FactVersionResponse
@@ -15,10 +16,11 @@ router = APIRouter()
 def list_entities(
     world_id: str,
     entity_type: Optional[str] = Query(None),
+    world: World = Depends(get_current_user_world),
     db: Session = Depends(get_db)
 ):
     service = EntityService(db)
-    entities = service.list_entities(world_id, entity_type)
+    entities = service.list_entities(world.id, entity_type)
 
     results = []
     for ent in entities:
@@ -59,10 +61,22 @@ def list_entities(
     return results
 
 @router.post("/{world_id}/entities", response_model=EntityResponse, status_code=status.HTTP_201_CREATED)
-def create_entity(world_id: str, ent_in: EntityCreate, db: Session = Depends(get_db)):
+def create_entity(
+    world_id: str,
+    ent_in: EntityCreate,
+    world: World = Depends(get_current_user_world),
+    db: Session = Depends(get_db)
+):
     service = EntityService(db)
+    existing = service.entity_repo.get_by_canonical(world.id, ent_in.canonical_name)
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="An entity with this canonical name already exists in this world."
+        )
+
     ent = service.create_entity(
-        world_id=world_id,
+        world_id=world.id,
         canonical_name=ent_in.canonical_name,
         entity_type=ent_in.entity_type,
         aliases=ent_in.aliases,
@@ -80,10 +94,15 @@ def create_entity(world_id: str, ent_in: EntityCreate, db: Session = Depends(get
     )
 
 @router.get("/{world_id}/entities/{entity_id}", response_model=EntityDetailResponse)
-def get_entity(world_id: str, entity_id: str, db: Session = Depends(get_db)):
+def get_entity(
+    world_id: str,
+    entity_id: str,
+    world: World = Depends(get_current_user_world),
+    db: Session = Depends(get_db)
+):
     service = EntityService(db)
     ent = service.get_entity(entity_id)
-    if not ent or ent.world_id != world_id:
+    if not ent or ent.world_id != world.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entity not found")
 
     aliases = [a.alias for a in ent.aliases]
@@ -139,41 +158,68 @@ def get_entity(world_id: str, entity_id: str, db: Session = Depends(get_db)):
     )
 
 @router.put("/{world_id}/entities/{entity_id}", response_model=EntityResponse)
-def update_entity(world_id: str, entity_id: str, ent_in: EntityUpdate, db: Session = Depends(get_db)):
+def update_entity(
+    world_id: str,
+    entity_id: str,
+    ent_in: EntityUpdate,
+    world: World = Depends(get_current_user_world),
+    db: Session = Depends(get_db)
+):
     service = EntityService(db)
-    ent = service.update_entity(
+    ent = service.get_entity(entity_id)
+    if not ent or ent.world_id != world.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entity not found")
+
+    if ent_in.canonical_name is not None:
+        existing = service.entity_repo.get_by_canonical(world.id, ent_in.canonical_name)
+        if existing and existing.id != ent.id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Another entity with this canonical name already exists in this world."
+            )
+
+    updated = service.update_entity(
         entity_id=entity_id,
         canonical_name=ent_in.canonical_name,
         entity_type=ent_in.entity_type,
         attributes=ent_in.attributes
     )
-    if not ent or ent.world_id != world_id:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entity not found")
-
     return EntityResponse(
-        id=ent.id,
-        world_id=ent.world_id,
-        entity_type=ent.entity_type,
-        canonical_name=ent.canonical_name,
-        aliases=[a.alias for a in ent.aliases],
+        id=updated.id,
+        world_id=updated.world_id,
+        entity_type=updated.entity_type,
+        canonical_name=updated.canonical_name,
+        aliases=[a.alias for a in updated.aliases],
         facts=[],
-        created_at=ent.created_at,
-        updated_at=ent.updated_at
+        created_at=updated.created_at,
+        updated_at=updated.updated_at
     )
 
 @router.delete("/{world_id}/entities/{entity_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_entity(world_id: str, entity_id: str, db: Session = Depends(get_db)):
+def delete_entity(
+    world_id: str,
+    entity_id: str,
+    world: World = Depends(get_current_user_world),
+    db: Session = Depends(get_db)
+):
     service = EntityService(db)
-    deleted = service.delete_entity(entity_id)
-    if not deleted:
+    ent = service.get_entity(entity_id)
+    if not ent or ent.world_id != world.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entity not found")
+    service.delete_entity(entity_id)
     return None
 
 @router.post("/{world_id}/entities/{entity_id}/facts", status_code=status.HTTP_201_CREATED)
-def add_fact_to_entity(world_id: str, entity_id: str, fact_in: FactCreate, db: Session = Depends(get_db)):
+def add_fact_to_entity(
+    world_id: str,
+    entity_id: str,
+    fact_in: FactCreate,
+    world: World = Depends(get_current_user_world),
+    db: Session = Depends(get_db)
+):
     service = EntityService(db)
     ent = service.get_entity(entity_id)
-    if not ent or ent.world_id != world_id:
+    if not ent or ent.world_id != world.id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entity not found")
     fact_ver = service.add_fact(
         entity_id=entity_id,
@@ -184,8 +230,21 @@ def add_fact_to_entity(world_id: str, entity_id: str, fact_in: FactCreate, db: S
     return {"id": fact_ver.id, "property": fact_in.property_name, "value": fact_ver.value, "status": fact_ver.status}
 
 @router.delete("/{world_id}/entities/{entity_id}/facts/{fact_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_fact(world_id: str, entity_id: str, fact_id: str, db: Session = Depends(get_db)):
+def delete_fact(
+    world_id: str,
+    entity_id: str,
+    fact_id: str,
+    world: World = Depends(get_current_user_world),
+    db: Session = Depends(get_db)
+):
     service = EntityService(db)
-    if not service.delete_fact(fact_id):
+    ent = service.get_entity(entity_id)
+    if not ent or ent.world_id != world.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entity not found")
+
+    fact = service.fact_repo.get(fact_id)
+    if not fact or fact.entity_id != entity_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Fact not found")
+
+    service.delete_fact(fact_id)
     return None

@@ -1,17 +1,40 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 class WorldBase(BaseModel):
-    name: str
+    name: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = ""
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        stripped = v.strip()
+        if not stripped:
+            raise ValueError("World name cannot be empty or whitespace only.")
+        return stripped
+
+    @field_validator("description")
+    @classmethod
+    def validate_description(cls, v: Optional[str]) -> str:
+        return (v or "").strip()
 
 class WorldCreate(WorldBase):
     pass
 
 class WorldUpdate(BaseModel):
-    name: Optional[str] = None
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
+
+    @field_validator("name")
+    @classmethod
+    def validate_update_name(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            stripped = v.strip()
+            if not stripped:
+                raise ValueError("World name cannot be empty or whitespace only.")
+            return stripped
+        return v
 
 class WorldStats(BaseModel):
     entities_count: int = 0
