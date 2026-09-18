@@ -77,6 +77,7 @@ def list_manuscripts(
             updated_at=m.updated_at
         )
         for m in manuscripts
+        if len(m.chapters) > 0
     ]
 
 @router.get("/{world_id}/manuscripts/{manuscript_id}", response_model=ManuscriptDetailResponse)
@@ -114,3 +115,17 @@ def get_manuscript(
         updated_at=manuscript.updated_at,
         chapters=chapters
     )
+
+@router.delete("/{world_id}/manuscripts/{manuscript_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_manuscript(
+    world_id: str,
+    manuscript_id: str,
+    world: World = Depends(get_current_user_world),
+    db: Session = Depends(get_db)
+):
+    service = ManuscriptService(db)
+    manuscript = service.get_manuscript(manuscript_id)
+    if not manuscript or manuscript.world_id != world.id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Manuscript not found")
+    service.manuscript_repo.delete(manuscript_id)
+    return None
