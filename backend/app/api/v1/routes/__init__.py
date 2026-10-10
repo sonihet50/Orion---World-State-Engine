@@ -8,6 +8,9 @@ from app.api.v1.routes.graph import router as graph_router
 from app.api.v1.routes.timeline import router as timeline_router
 from app.api.v1.routes.contradictions import router as contradictions_router
 from app.api.v1.routes.chat import router as chat_router
+from app.api.v1.routes.relationships import router as relationships_router
+from app.api.v1.routes.events import router as events_router
+from app.api.v1.routes.proposals import router as proposals_router
 
 __all__ = [
     "auth_router",
@@ -20,4 +23,7 @@ __all__ = [
     "timeline_router",
     "contradictions_router",
     "chat_router",
+    "relationships_router",
+    "events_router",
+    "proposals_router",
 ]

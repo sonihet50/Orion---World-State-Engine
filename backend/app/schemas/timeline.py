@@ -18,6 +18,7 @@ class TimelineEventResponse(BaseModel):
     description: str
     start_position: Optional[int] = None
     end_position: Optional[int] = None
+    sequence_index: Optional[int] = None
     confidence: float
     created_at: datetime
     participants: List[TimelineParticipant] = []

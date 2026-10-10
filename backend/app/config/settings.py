@@ -62,6 +62,16 @@ class Settings(BaseSettings):
         "*"
     ]
 
+    @field_validator("DATABASE_URL", mode="after")
+    @classmethod
+    def pin_postgres_driver(cls, v: str) -> str:
+        # SQLAlchemy 2.1 changed the default driver for a bare "postgresql://" URL from psycopg2 to
+        # psycopg (v3). requirements.txt installs psycopg2-binary, so name that driver explicitly.
+        for bare in ("postgresql://", "postgres://"):
+            if v.startswith(bare):
+                return "postgresql+psycopg2://" + v[len(bare):]
+        return v
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:

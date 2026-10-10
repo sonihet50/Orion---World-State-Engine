@@ -109,7 +109,7 @@ This document provides the definitive schema reference for all 12 relational dat
 - **`relationship_versions`**: `id` (PK), `relationship_id` (FK), `chapter_id`, `relationship_type` (`VARCHAR(100)`), `status` (`ACTIVE`/`SUPERSEDED`/`CONTRADICTED`), `confidence`, `created_at`.
 
 ### `events` & `event_participants`
-- **`events`**: `id` (PK), `world_id` (FK), `chapter_id` (FK), `event_type` (`VARCHAR(100)`), `description` (`TEXT`), `start_position`, `end_position`, `confidence`, `created_at`.
+- **`events`**: `id` (PK), `world_id` (FK), `chapter_id` (FK), `event_type` (`VARCHAR(100)`), `description` (`TEXT`), `start_position`, `end_position`, `sequence_index` (nullable `INT`, author-set order within a chapter), `confidence`, `created_at`.
 - **`event_participants`**: `id` (PK), `event_id` (FK), `entity_id` (FK), `role` (`VARCHAR(100)`).
 
 ---
