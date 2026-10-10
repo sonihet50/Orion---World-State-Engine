@@ -34,6 +34,10 @@
   - `SUPERSEDED`: A valid chronological evolution or change of state.
   - `CONTRADICTED`: A conflicting value that triggered a contradiction record.
 - **Rule 3.3**: Never delete historical chapters or versions when re-extracting text.
+- **Rule 3.4 — Manual operations carve-out**: Rules 3.1–3.3 were written for the extraction pipeline and every other automated write path. Operations the author starts explicitly through the API follow these rules instead:
+  - **Manual edits still append new versions.** Editing a fact value or relationship type through the API appends a new `FactVersion` / `RelationshipVersion` and supersedes the previous one, exactly as Rule 3.2 says. It never updates the existing row in place.
+  - **Merge may repoint foreign keys and change version status, but never rewrites a value or a type.** Merging entity B into entity A may move B's facts, relationships, mentions, aliases and event participations to A, and may change version status (for example `ACTIVE` → `SUPERSEDED`) to resolve duplicates. It must never change a stored `value` or relationship type.
+  - **Author-initiated deletes of entities, relationships, events and facts are allowed.** REQ-22 forbids the *system* from overwriting stored facts. It does not forbid the author from deliberately removing something. Deletes must still verify ownership (Rule 1.2), and the pipeline must never issue them on its own.
 
 ---
 
