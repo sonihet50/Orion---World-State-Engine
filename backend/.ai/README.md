@@ -25,6 +25,7 @@ The World State Engine converts narrative fiction prose into a structured, query
 | [**ARCHITECTURE.md**](ARCHITECTURE.md) | Mechanistic breakdown of request flows, layers, and data pipelines | When understanding how pieces connect |
 | [**RULES.md**](RULES.md) | Non-negotiable technical invariants, security boundaries, and performance budgets | **Mandatory** before modifying code |
 | [**WORKFLOW.md**](WORKFLOW.md) | Git fork synchronization, branching strategy, atomic commits, PR guidelines | Before creating branches or committing code |
+| [**SPLIT.md**](SPLIT.md) | Per-branch file ownership, frozen files, don't-touch lists, no-migration rule | **Mandatory** before editing any file on a feature branch |
 | [**DEBUGGING.md**](DEBUGGING.md) | Hypothesis-driven debugging protocol & catalog of known failure modes | Whenever an error or test failure occurs |
 
 ### Context Documents (`context/`)
