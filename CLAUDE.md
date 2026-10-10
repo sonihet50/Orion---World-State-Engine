@@ -25,6 +25,9 @@ Paths in `backend/CLAUDE.md` (such as `.ai/RULES.md`) are relative to `backend/`
 # Backend tests: must be 0 failures before any commit (RULES.md 7.1)
 cd backend && PYTHONPATH=. pytest app/tests/ -q
 
+# Seed or reset the demo world (login demo@example.com / orion-demo); deterministic, safe to rerun
+cd backend && python scripts/seed_demo_world.py
+
 # Frontend build and lint
 cd Frontend && npm run build && npm run lint
 ```
