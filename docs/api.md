@@ -278,6 +278,8 @@ Asynchronous background extraction jobs are tracked through Celery and database 
 
 Entities represent characters, locations, and objects. In compliance with **SRS REQ-22**, fact records are append-only; property values are versioned and never destructively updated in place.
 
+Merge, bulk delete and aliases: see §13.
+
 ### 7.1 List Entities
 - **Method / Endpoint**: `GET /api/v1/worlds/{world_id}/entities`
 - **Query Parameters**:
@@ -414,6 +416,8 @@ Returns the entity with all active facts, outgoing relationship edges, and parti
 
 Generates a node-edge network representation formatted for graph visualization libraries (e.g. Cytoscape.js, D3 force-directed graphs).
 
+The graph at a chosen chapter (`?as_of_chapter=N`): see §16.
+
 ### 8.1 Get World Knowledge Graph
 - **Method / Endpoint**: `GET /api/v1/worlds/{world_id}/graph`
 - **Response** (`200 OK`):
@@ -456,6 +460,8 @@ Generates a node-edge network representation formatted for graph visualization l
 ## 9. Timeline (`/api/v1/worlds/{world_id}/timeline`)
 
 Returns the narrative sequence of events with participant roles and chapter provenance.
+
+Event create, update, delete and reorder, and the event ordering rule: see §15.
 
 ### 9.1 Get World Timeline
 - **Method / Endpoint**: `GET /api/v1/worlds/{world_id}/timeline`
@@ -610,3 +616,378 @@ Retrieves answers grounded strictly in the world state, entity registry, and tim
     "docs": "/api/v1/docs"
   }
   ```
+
+---
+
+## Step 0 Contracts (§13–§17)
+
+The sections below are the contracts the three feature branches build against. They were frozen with this file at
+the `step0` tag (see `backend/.ai/SPLIT.md`). Endpoints marked **(planned)** don't exist yet; the owner named in each
+section implements them. Typed client stubs live in `Frontend/src/api/entities.ts`, `relationships.ts`, `events.ts`
+and `proposals.ts`.
+
+Shared conventions for §13–§17:
+
+- **Auth and tenancy:** every endpoint requires `Authorization: Bearer <token>`. A world, job, entity, relationship,
+  event or chapter that doesn't exist, or belongs to another user's world, returns `404 Not Found`. A missing or
+  invalid token returns `401 Unauthorized` (RULES.md 1.2, 6.3).
+- **Status codes:** `201 Created` when a resource is created, `202 Accepted` while async work is still running,
+  `204 No Content` on delete, `200 OK` otherwise (RULES.md 6.3). `400 Bad Request` for a business-rule rejection,
+  `422 Unprocessable Entity` for a malformed body (§1.2).
+- **Versioning:** manual edits to fact values and relationship types append a new version and supersede the previous
+  `ACTIVE` one. They never update a stored value in place. Author-initiated deletes are allowed (RULES.md 3.4).
+- **Orphan contradictions:** any delete in §13–§15 also deletes the contradictions that reference the removed fact
+  versions, relationship versions or events, so the Contradictions page never shows a row with nothing behind it.
+  This applies to the existing `DELETE /entities/{entity_id}` (§7.5) and `DELETE .../facts/{fact_id}` (§7.7) too.
+
+---
+
+## 13. Entity Merge, Bulk Delete & Aliases (`/api/v1/worlds/{world_id}/entities`)
+
+**Owner:** Person A (`feature/manual-entities`). **Client:** `Frontend/src/api/entities.ts`.
+
+### 13.1 Merge Entities (planned)
+Merges `source_id` into `target_id` in one transaction. The target survives, and the source is deleted.
+- **Method / Endpoint**: `POST /api/v1/worlds/{world_id}/entities/merge`
+- **Request Body**:
+  ```json
+  {
+    "source_id": "ent-007",
+    "target_id": "ent-001"
+  }
+  ```
+- **Response** (`200 OK`): the surviving target as an Entity object (same shape as §7.1).
+- **Merge rules** (all inside one transaction):
+  1. The source's `canonical_name` and aliases become aliases of the target, deduplicated case-insensitively and
+     skipping any that equal the target's `canonical_name`. This stops re-extraction from proposing the merged-away
+     name again.
+  2. The source's mentions are repointed to the target.
+  3. Facts with the same `property_name` are folded into the target's fact. If both have an `ACTIVE` version with
+     different values, the target's stays `ACTIVE` and the source's becomes `SUPERSEDED`. Facts only the source has
+     move to the target unchanged.
+  4. Event participations are repointed. If the target already participates in that event, the duplicate row is
+     dropped.
+  5. Relationships between source and target are deleted (they would become self-loops). If repointing creates a
+     directed pair the target already has, the moved relationship's versions are added to the existing row and the
+     empty row is deleted.
+  6. Stored values and relationship types are never rewritten. Only foreign keys and version `status` change
+     (RULES.md 3.4).
+- **Errors**:
+  - `400 Bad Request`: `source_id` equals `target_id`, or a job for this world is `queued` or `processing`.
+  - `404 Not Found`: either entity isn't in this world. This also covers entities in different worlds.
+
+### 13.2 Bulk Delete Entities (planned)
+- **Method / Endpoint**: `POST /api/v1/worlds/{world_id}/entities/bulk-delete`
+- **Request Body**:
+  ```json
+  {
+    "entity_ids": ["ent-007", "ent-008"]
+  }
+  ```
+  `entity_ids` must contain at least one id; duplicates are ignored.
+- **Response** (`204 No Content`)
+- **Behavior**: all-or-nothing. If any id isn't in this world, nothing is deleted. Each entity's facts, versions,
+  aliases, mentions, relationships and event participations are removed by the existing cascades, and orphan
+  contradictions are deleted (see the shared conventions).
+- **Errors**: `404 Not Found` if any id isn't in this world. `422 Unprocessable Entity` if `entity_ids` is empty.
+
+### 13.3 Add Alias (planned)
+- **Method / Endpoint**: `POST /api/v1/worlds/{world_id}/entities/{entity_id}/aliases`
+- **Request Body**:
+  ```json
+  {
+    "alias": "The Shadow Blade"
+  }
+  ```
+  `alias` is trimmed and must not be empty.
+- **Response** (`201 Created`): the updated Entity object (same shape as §7.1). `aliases` stays a list of strings.
+- **Errors**: `400 Bad Request` if the entity already has this alias or this canonical name (case-insensitive).
+
+### 13.4 Remove Alias (planned)
+- **Method / Endpoint**: `DELETE /api/v1/worlds/{world_id}/entities/{entity_id}/aliases?alias=The%20Shadow%20Blade`
+- The alias goes in a query parameter rather than the path, so aliases containing `/` work. Matching is
+  case-insensitive after trimming.
+- **Response** (`204 No Content`)
+- **Errors**: `404 Not Found` if the entity has no such alias.
+
+### 13.5 Retype Entity
+No new endpoint. Inline type edits use `PUT /entities/{entity_id}` (§7.4) with `{"entity_type": "location"}`.
+
+---
+
+## 14. Relationships (`/api/v1/worlds/{world_id}/relationships`)
+
+**Owner:** Person B (`feature/graph-timeline`). **Client:** `Frontend/src/api/relationships.ts`.
+
+There is one relationship row per directed pair (source → target). The relationship type lives on its versions, so
+a type change appends a version instead of creating a second row.
+
+**Relationship object:**
+```json
+{
+  "id": "rel-001",
+  "world_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  "source_entity_id": "ent-001",
+  "source_name": "Valen Thorne",
+  "target_entity_id": "ent-002",
+  "target_name": "Lady Seraphina",
+  "created_at": "2026-09-11T10:10:00Z",
+  "current_version": {
+    "id": "rver-002",
+    "relationship_id": "rel-001",
+    "relationship_type": "ENEMY_OF",
+    "status": "ACTIVE",
+    "chapter_id": "ch-103",
+    "chapter_number": 3,
+    "confidence": 1.0,
+    "created_at": "2026-09-12T09:00:00Z"
+  },
+  "versions": [
+    { "id": "rver-002", "relationship_type": "ENEMY_OF", "status": "ACTIVE", "chapter_number": 3, "...": "..." },
+    { "id": "rver-001", "relationship_type": "ALLY_OF", "status": "SUPERSEDED", "chapter_number": 1, "...": "..." }
+  ]
+}
+```
+- `current_version` is the latest `ACTIVE` version, or `null` if none is active.
+- `versions` lists every version, newest first. Each has the same fields as `current_version`.
+- `chapter_id` and `chapter_number` are `null` for a version with no chapter. Such a version is visible at every
+  point on the time axis (§16).
+
+### 14.1 List Relationships (planned)
+- **Method / Endpoint**: `GET /api/v1/worlds/{world_id}/relationships`
+- **Query Parameters**:
+  - `entity_id` *(optional)*: only relationships where this entity is the source or the target.
+- **Response** (`200 OK`): a list of Relationship objects.
+
+### 14.2 Get Relationship (planned)
+- **Method / Endpoint**: `GET /api/v1/worlds/{world_id}/relationships/{relationship_id}`
+- **Response** (`200 OK`): a Relationship object.
+
+### 14.3 Create Relationship or Add a Type (planned)
+- **Method / Endpoint**: `POST /api/v1/worlds/{world_id}/relationships`
+- **Request Body**:
+  ```json
+  {
+    "source_entity_id": "ent-001",
+    "target_entity_id": "ent-002",
+    "relationship_type": "ALLY_OF",
+    "chapter_id": "ch-101",
+    "confidence": 1.0
+  }
+  ```
+  `chapter_id` and `confidence` are optional (defaults `null` and `1.0`). The UI form always sends a `chapter_id`,
+  because a relationship with no chapter has no place on the time axis.
+- **Response**:
+  - `201 Created` with the new Relationship object if the directed pair didn't exist. It has one `ACTIVE` version.
+  - `200 OK` with the updated Relationship object if the pair already existed. A new version is appended and the
+    previous `ACTIVE` version becomes `SUPERSEDED`.
+- **Consistency (P1):** the new version is passed to `evaluate_relationship_version`. If a rule flags it, it is stored
+  as `CONTRADICTED`, the previous version stays `ACTIVE`, and a contradiction is recorded, as during extraction.
+- **Errors**:
+  - `400 Bad Request`: `source_entity_id` equals `target_entity_id`, or the pair's `ACTIVE` version already has this
+    `relationship_type`.
+  - `404 Not Found`: either entity, or the chapter, isn't in this world.
+
+### 14.4 Change Relationship Type (planned)
+- **Method / Endpoint**: `PUT /api/v1/worlds/{world_id}/relationships/{relationship_id}`
+- **Request Body**:
+  ```json
+  {
+    "relationship_type": "ENEMY_OF",
+    "chapter_id": "ch-103",
+    "confidence": 1.0
+  }
+  ```
+  `chapter_id` and `confidence` are optional, as in §14.3.
+- **Response** (`200 OK`): the updated Relationship object. This works the same as §14.3 on an existing pair: it
+  appends a version and supersedes the old one.
+- **Errors**: `400 Bad Request` if the `ACTIVE` version already has this type. `404 Not Found` if the relationship or
+  chapter isn't in this world.
+
+### 14.5 Delete Relationship (planned)
+- **Method / Endpoint**: `DELETE /api/v1/worlds/{world_id}/relationships/{relationship_id}`
+- **Response** (`204 No Content`). The row and all its versions are removed (author-initiated delete, RULES.md 3.4),
+  and orphan contradictions are deleted.
+
+---
+
+## 15. Events (`/api/v1/worlds/{world_id}/events`)
+
+**Owner:** Person B (`feature/graph-timeline`). **Client:** `Frontend/src/api/events.ts`.
+
+The Event object has the same shape as a timeline event (`TimelineEventResponse`, §9.1): `id`, `world_id`,
+`chapter_id`, `chapter_number`, `event_type`, `description`, `start_position`, `end_position`, `sequence_index`,
+`confidence`, `created_at` and `participants` (`entity_id`, `entity_name`, `role`). Events have no version table, so
+event edits update the row in place. RULES.md 3.1 covers only fact values and relationship types.
+
+**Ordering** (timeline §9.1 and reorder §15.5): by `chapter_number`, then `sequence_index`, then `start_position`,
+then `created_at`. Events with no chapter come first, and a `null` in any of these fields sorts after non-null values.
+
+### 15.1 Create Event (planned)
+- **Method / Endpoint**: `POST /api/v1/worlds/{world_id}/events`
+- **Request Body**:
+  ```json
+  {
+    "description": "Valen leads the defense of the fortress.",
+    "event_type": "BATTLE",
+    "chapter_id": "ch-102",
+    "sequence_index": null,
+    "participants": [
+      { "entity_id": "ent-001", "role": "commander" }
+    ]
+  }
+  ```
+  Only `description` is required. Defaults: `event_type` `"EVENT"`, `chapter_id` `null`, `sequence_index` `null`,
+  `participants` `[]`, each `role` `"PARTICIPANT"`.
+- **Response** (`201 Created`): the Event object.
+- **Errors**: `400 Bad Request` if the same `entity_id` appears twice in `participants`. `404 Not Found` if the
+  chapter or a participant entity isn't in this world.
+
+### 15.2 Get Event (planned)
+- **Method / Endpoint**: `GET /api/v1/worlds/{world_id}/events/{event_id}`
+- **Response** (`200 OK`): the Event object. To list events, use the timeline (§9.1).
+
+### 15.3 Update Event (planned)
+- **Method / Endpoint**: `PUT /api/v1/worlds/{world_id}/events/{event_id}`
+- **Request Body**: any subset of `description`, `event_type`, `chapter_id` and `participants`. If `participants` is
+  sent, it replaces the whole list. If `chapter_id` changes, `sequence_index` resets to `null`.
+- **Response** (`200 OK`): the updated Event object.
+- **Errors**: the same as §15.1.
+
+### 15.4 Delete Event (planned)
+- **Method / Endpoint**: `DELETE /api/v1/worlds/{world_id}/events/{event_id}`
+- **Response** (`204 No Content`). Participants are removed by cascade, and orphan contradictions are deleted.
+
+### 15.5 Reorder Events Within a Chapter (planned)
+The timeline's up/down buttons send the chapter's full event order. There is no drag-and-drop.
+- **Method / Endpoint**: `PATCH /api/v1/worlds/{world_id}/events/reorder`
+- **Request Body**:
+  ```json
+  {
+    "chapter_id": "ch-102",
+    "event_ids": ["ev-005", "ev-003", "ev-004"]
+  }
+  ```
+  `event_ids` must list every event in that chapter exactly once. `chapter_id: null` reorders the events that have no
+  chapter.
+- **Response** (`200 OK`): `{"events": [...], "total": 3}` (the §9.1 shape), holding only that chapter's events in
+  their new order. The server sets `sequence_index` to `0..n-1` in the order given.
+- **Errors**: `400 Bad Request` if `event_ids` has duplicates, is missing an event in the chapter, or contains an
+  event from another chapter. `404 Not Found` if the chapter isn't in this world.
+- Declare this route before `/events/{event_id}` so `reorder` is never read as an event id.
+
+---
+
+## 16. Time-Slice Graph (`GET /api/v1/worlds/{world_id}/graph?as_of_chapter=N`)
+
+**Owner:** Person B (`feature/graph-timeline`). This extends §8.1 and reuses the §8.1 response shape.
+
+- **Method / Endpoint**: `GET /api/v1/worlds/{world_id}/graph?as_of_chapter=N` (planned)
+- **Query Parameters**:
+  - `as_of_chapter` *(optional, integer ≥ 1)*: show the world as it stood at the end of chapter `N`. If omitted, the
+    response is exactly what §8.1 returns today ("latest").
+- **Response** (`200 OK`): the §8.1 Graph object. An edge's `type`, `status` and `chapter_id` come from the version
+  chosen for chapter `N`, and node `properties` come from the fact versions chosen for chapter `N`. An `N` beyond the
+  last chapter returns the state after the last chapter.
+- **Errors**: `422 Unprocessable Entity` if `as_of_chapter` isn't an integer ≥ 1.
+
+**As-of rules:**
+- **Edges:** for each directed pair, take the versions with chapter number ≤ `N` (a version with no chapter always
+  counts). The latest such version wins. Ignore `ACTIVE`/`SUPERSEDED` here, because those describe "now", not
+  "then". Exclude:
+  - versions in an unresolved (`DETECTED`) contradiction that are `CONTRADICTED`, and
+  - versions the author rejected: the new-side version of a `RESOLVED` contradiction that ended up `SUPERSEDED`.
+
+  Otherwise the slider would show claims the author threw out. A pair with no qualifying version has no edge.
+- **Node properties:** the same rule, applied to each fact's versions.
+- **Nodes:** a node is shown if it has an as-of fact or edge, a mention in chapter ≤ `N` (mention → extraction run →
+  chapter version → chapter), or no chapter-tagged data at all (a manually created entity).
+- **Limitation:** chapter numbers are per manuscript. In a world with more than one manuscript, `N` matches chapter `N`
+  of every manuscript. The demo world has one manuscript.
+
+---
+
+## 17. Re-extraction Proposals (`GET /api/v1/jobs/{job_id}/proposals`)
+
+**Owner:** Extraction (`feature/extraction-review`). **Client:** `Frontend/src/api/proposals.ts`.
+
+Editing a chapter starts a `RE_EXTRACTION` job (§5.3). With propose-then-apply, the job runs the extractor only,
+compares the result with the current world, and saves the proposals as a JSON file keyed by job id. It doesn't write
+to the world tables. The first upload (`INITIAL_EXTRACTION`) still writes directly and has no proposals.
+
+### 17.1 Get Proposals (planned)
+- **Method / Endpoint**: `GET /api/v1/jobs/{job_id}/proposals`
+- **Response**:
+  - `200 OK` when the job is `done`: the Proposals object below with `"status": "ready"`.
+  - `202 Accepted` while the job is `queued` or `processing`: the same shape with `"status": "pending"` and an empty
+    `proposals` list. Keep polling `GET /jobs/{job_id}/status` (§6.2).
+- **Errors**: `404 Not Found` if the job doesn't exist or isn't the user's, the job isn't a `RE_EXTRACTION` job, or it
+  `failed`.
+
+**Proposals object:**
+```json
+{
+  "job_id": "e0a29482-1678-43d9-a78b-d535b91b5c90",
+  "world_id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
+  "chapter_id": "ch-102",
+  "chapter_number": 2,
+  "status": "ready",
+  "generated_at": "2026-10-12T14:03:00Z",
+  "proposals": [
+    {
+      "id": "p-001",
+      "kind": "entity",
+      "change": "new",
+      "summary": "New character: Mara Venn",
+      "confidence": 0.9,
+      "match_entity_id": null,
+      "proposed": { "canonical_name": "Mara Venn", "entity_type": "character", "aliases": [] }
+    },
+    {
+      "id": "p-002",
+      "kind": "fact",
+      "change": "changed",
+      "summary": "Valen Thorne status: alive → dead",
+      "confidence": 0.8,
+      "entity": { "entity_id": "ent-001" },
+      "current": { "fact_version_id": "fver-100", "value": "alive" },
+      "proposed": { "property_name": "status", "value": "dead", "confidence": 0.8 }
+    },
+    {
+      "id": "p-003",
+      "kind": "relationship",
+      "change": "new",
+      "summary": "Mara Venn ALLY_OF Valen Thorne",
+      "confidence": 0.7,
+      "source": { "entity_ref": "p-001" },
+      "target": { "entity_id": "ent-001" },
+      "current": null,
+      "proposed": { "relationship_type": "ALLY_OF", "chapter_id": "ch-102", "confidence": 0.7 }
+    }
+  ]
+}
+```
+
+**Proposal fields:**
+- `id`: unique within this response. Other proposals point at it through `entity_ref`.
+- `change`: `new` (the modal shows it with a tick box to add it), `changed` (the author chooses old or new) or
+  `known` (already in the world; the modal hides it).
+- **Entity references** (`entity`, `source`, `target`, `participants[].entity`): either `{"entity_id": "..."}` for an
+  existing entity, or `{"entity_ref": "p-001"}` for the entity created by a `new` entity proposal in the same response.
+
+| `kind` | Kind-specific fields | `change` values | Applied with |
+| --- | --- | --- | --- |
+| `entity` | `match_entity_id` (set when `known`), `proposed`: §7.2 body | `new`, `known` | `POST /entities` (§7.2) |
+| `alias` | `entity_id`, `proposed`: `{"alias": "..."}` | `new`, `known` | `POST /entities/{id}/aliases` (§13.3) |
+| `fact` | `entity`, `current`: `{fact_version_id, value}` or `null`, `proposed`: §7.6 body | `new`, `changed`, `known` | `POST /entities/{id}/facts` (§7.6) |
+| `relationship` | `source`, `target`, `current`: `{relationship_id, relationship_version_id, relationship_type}` or `null`, `proposed`: `{relationship_type, chapter_id, confidence}` | `new`, `changed`, `known` | `POST /relationships` (§14.3) |
+| `event` | `participants`: `[{entity, role}]`, `proposed`: §15.1 body without `participants` | `new`, `known` | `POST /events` (§15.1) |
+
+**Applying (frontend, `WritingRoom.tsx` review modal):**
+- There is no apply endpoint. The modal calls the manual endpoints in the table, so every accepted change goes through
+  the same write path as a manual edit and becomes a new version (RULES.md 3.4).
+- Apply in this order: `entity` → `alias` → `fact` → `relationship` → `event`. Replace each `entity_ref` with the id
+  returned when that entity proposal was applied.
+- If the author rejects a `new` entity proposal, also skip every proposal that references it through `entity_ref`.
+- For a `changed` proposal, "keep old" sends nothing. "Keep new" sends `proposed` to the endpoint, which appends a
+  version and supersedes the old one.

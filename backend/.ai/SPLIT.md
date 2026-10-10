@@ -72,6 +72,7 @@ Step 0 creates typed stubs in `Frontend/src/api/`, and each owner fills in only 
 | `Frontend/src/App.tsx` | Shared routing for every page |
 | `backend/app/tests/conftest.py` | Shared fixtures for every branch |
 | `docs/api.md` | The contract every branch builds against |
+| `Frontend/src/api/stub.ts` | Shared `notImplemented()` placeholder used by every Step 0 client stub |
 | `backend/app/models/` | Schema frozen at `step0` (see Rule S.1) |
 | `backend/alembic/versions/` | Schema frozen at `step0` (see Rule S.1) |
 
