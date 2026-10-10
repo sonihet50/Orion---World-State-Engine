@@ -10,6 +10,9 @@ from app.api.v1.routes.graph import router as graph_router
 from app.api.v1.routes.timeline import router as timeline_router
 from app.api.v1.routes.contradictions import router as contradictions_router
 from app.api.v1.routes.chat import router as chat_router
+from app.api.v1.routes.relationships import router as relationships_router
+from app.api.v1.routes.events import router as events_router
+from app.api.v1.routes.proposals import router as proposals_router
 
 api_router = APIRouter()
 
@@ -23,3 +26,6 @@ api_router.include_router(graph_router, prefix="/worlds", tags=["Knowledge Graph
 api_router.include_router(timeline_router, prefix="/worlds", tags=["Timeline"])
 api_router.include_router(contradictions_router, prefix="/worlds", tags=["Contradictions"])
 api_router.include_router(chat_router, prefix="/worlds", tags=["World Chat"])
+api_router.include_router(relationships_router, prefix="/worlds", tags=["Relationships"])
+api_router.include_router(events_router, prefix="/worlds", tags=["Events"])
+api_router.include_router(proposals_router, prefix="/jobs", tags=["Proposals"])
