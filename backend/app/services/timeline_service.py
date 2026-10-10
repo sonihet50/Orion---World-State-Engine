@@ -34,6 +34,7 @@ class TimelineService:
                 description=ev.description,
                 start_position=ev.start_position,
                 end_position=ev.end_position,
+                sequence_index=ev.sequence_index,
                 confidence=ev.confidence,
                 created_at=ev.created_at,
                 participants=participants

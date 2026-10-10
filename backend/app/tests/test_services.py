@@ -12,6 +12,7 @@ from app.services.graph_service import GraphService
 from app.services.timeline_service import TimelineService
 from app.services.chapter_service import ChapterService
 from app.repositories.manuscript_repo import ManuscriptRepository
+from app.models.event import Event
 
 @pytest.fixture
 def db_session():
@@ -107,6 +108,15 @@ def test_graph_and_timeline_services(db_session):
     timeline = timeline_service.get_world_timeline(world.id)
     assert timeline.total == 1
     assert timeline.events[0].event_type == "DISCOVERY"
+    assert timeline.events[0].sequence_index is None
+
+def test_timeline_returns_sequence_index(db_session):
+    world = WorldStateService(db_session).create_world("Ordered")
+    db_session.add(Event(world_id=world.id, description="Second beat", sequence_index=2))
+    db_session.commit()
+
+    timeline = TimelineService(db_session).get_world_timeline(world.id)
+    assert timeline.events[0].sequence_index == 2
 
 def test_delete_chapter_removes_empty_manuscript(db_session):
     ws_service = WorldStateService(db_session)

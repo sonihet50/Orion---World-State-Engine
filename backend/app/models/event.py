@@ -17,6 +17,8 @@ class Event(Base):
     description = Column(Text, nullable=False)
     start_position = Column(Integer, nullable=True)
     end_position = Column(Integer, nullable=True)
+    # Author-set order within a chapter; NULL falls back to start_position, then created_at.
+    sequence_index = Column(Integer, nullable=True)
     confidence = Column(Float, default=1.0, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 

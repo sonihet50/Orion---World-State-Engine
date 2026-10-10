@@ -104,10 +104,11 @@ Step 0 creates typed stubs in `Frontend/src/api/`, and each owner fills in only 
 
 - **Rule S.1: No model or migration changes on feature branches.** Don't edit `backend/app/models/` or add files
   under `backend/alembic/versions/` on any `feature/*` branch other than `feature/step0-scaffold`.
-  - **Why:** the repo has exactly one Alembic head (`1fa5cd397cfc`, today's only revision). Two branches that each
+  - **Why:** the repo has exactly one Alembic head (`ef5362e51e02`, which revises `1fa5cd397cfc`). Two branches that each
     add a migration with the same `down_revision` create two heads, and `alembic upgrade head` then fails until
     someone writes a merge migration.
-  - **The one exception:** Step 0 adds the single planned migration (`events.sequence_index`, nullable int), which
-    moves the head. After the `step0` tag, the schema is frozen for everyone.
+  - **The one exception:** Step 0 added the single planned migration, `ef5362e51e02` (`events.sequence_index`,
+    nullable int). After the `step0` tag, the schema is frozen for everyone. `app/tests/test_migrations.py` fails
+    if a second head appears.
   - **If a feature needs a schema change:** stop and raise it with the team. Don't work around it with the
     `database-migration` skill. The proposals flow stores its data as a JSON file keyed by job id for this reason.

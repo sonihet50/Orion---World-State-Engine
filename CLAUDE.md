@@ -14,7 +14,7 @@ Paths in `backend/CLAUDE.md` (such as `.ai/RULES.md`) are relative to `backend/`
 ## Before editing any file
 
 1. Find the file in `backend/.ai/SPLIT.md`. If your branch doesn't own it, or it is frozen, stop and ask.
-2. **No model or migration changes on feature branches.** The repo has exactly one Alembic head (`1fa5cd397cfc`).
+2. **No model or migration changes on feature branches.** The repo has exactly one Alembic head (`ef5362e51e02`).
    Two branches that each add a migration would create two heads. Only `feature/step0-scaffold` may change
    `backend/app/models/` or `backend/alembic/versions/` (SPLIT.md Rule S.1).
 3. Follow `backend/.ai/RULES.md`. Rule 3.4 covers author-initiated edits, merges and deletes.
